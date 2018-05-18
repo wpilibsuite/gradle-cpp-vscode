@@ -23,6 +23,11 @@
                 "command": "gradlevscpp.refreshProperties",
                 "title": "Refresh Gradle C++ Properties",
                 "category": "Gradle C++"
+            },
+            {
+                "command": "gradlevscpp.selectToolchain",
+                "title": "Select Current C++ Toolchain",
+                "category": "Gradle C++"
             }
         ]
     },

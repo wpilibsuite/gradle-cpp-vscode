@@ -10,14 +10,18 @@ export interface SourceSet {
   source: Source;
   exportedHeaders: Source;
   cpp: boolean;
+  args: string[];
+  macros: { [name: string]: string };
 }
 
 export interface Binary {
   componentName: string;
-
+  sourceSets: SourceSet[];
+  libHeaders: string[];
 }
 
 export interface ToolChain {
+  name: string;
   architecture: string;
   operatingSystem: string;
   flavor: string;
@@ -25,10 +29,8 @@ export interface ToolChain {
   cppPath: string;
   cPath: string;
   msvc: boolean;
-  systemCppIncludes: string[];
   systemCppMacros: string[];
   systemCppArgs: string[];
-  systemCIncludes: string[];
   systemCMacros: string[];
   systemCArgs: string[];
   binaries: Binary[];

@@ -12,10 +12,14 @@ export async function activate(context: vscode.ExtensionContext) {
     // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "gradle-vscode-cpp" is now active!');
 
+
+
+
+
     const workspaces = vscode.workspace.workspaceFolders;
 
-    const configLoaders: ConfigLoader[] = [];
-    const promises: Promise<void>[] = [];
+    let configLoaders: ConfigLoader[] = [];
+    let promises: Promise<void>[] = [];
 
     if (workspaces !== undefined) {
         for (const wp of workspaces) {
@@ -27,17 +31,31 @@ export async function activate(context: vscode.ExtensionContext) {
 
     await Promise.all(promises);
 
-
+    context.subscriptions.push(vscode.commands.registerCommand('gradlevscpp.selectToolchain', async () => {
+    }));
 
     // The command has been defined in the package.json file
     // Now provide the implementation of the command with  registerCommand
     // The commandId parameter must match the command field in package.json
-    let disposable = vscode.commands.registerCommand('gradlevscpp.refreshProperties', () => {
+    let disposable = vscode.commands.registerCommand('gradlevscpp.refreshProperties', async () => {
         // The code you place here will be executed every time your command is executed
 
-        // Display a message box to the user
-        vscode.window.showInformationMessage('Hello World!');
+        const workspaces = vscode.workspace.workspaceFolders;
+
+        let configLoaders: ConfigLoader[] = [];
+        let promises: Promise<void>[] = [];
+
+        if (workspaces !== undefined) {
+            for (const wp of workspaces) {
+                const configLoader = new ConfigLoader(wp);
+                configLoaders.push(configLoader);
+                promises.push(configLoader.loadConfigs());
+            }
+        }
+
+        await Promise.all(promises);
     });
+
 
     context.subscriptions.push(disposable);
 }

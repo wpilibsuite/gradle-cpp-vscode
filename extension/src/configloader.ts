@@ -18,7 +18,9 @@ function promisifyReadFile(location: string): Promise<string> {
 }
 
 export class ConfigLoader {
-  private workspace: vscode.WorkspaceFolder;
+  public workspace: vscode.WorkspaceFolder;
+  private toolchains: ToolChain[] = [];
+  private selectedName: string = 'none';
 
   private statusBar: vscode.StatusBarItem;
 
@@ -28,7 +30,9 @@ export class ConfigLoader {
     this.workspace = workspace;
 
     this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 2);
-    this.statusBar.text = 'none';
+    this.statusBar.text = this.selectedName;
+    this.statusBar.tooltip = 'Click to change toolchain';
+    this.statusBar.command = 'gradlevscpp.selectToolchain';
   }
 
   public async loadConfigs(): Promise<void> {
@@ -39,13 +43,13 @@ export class ConfigLoader {
     }
     const readFiles: string[] = await Promise.all(promiseArray);
 
-    const toolchains: ToolChain[] = [];
+    this.toolchains = [];
 
     for (const file of readFiles) {
       const newToolchains: ToolChain[] = jsonc.parse(file);
       for (const newToolChain of newToolchains) {
         let found = false;
-        for (const existingChain of toolchains) {
+        for (const existingChain of this.toolchains) {
           if (newToolChain.architecture === existingChain.architecture &&
             newToolChain.operatingSystem === existingChain.operatingSystem &&
             newToolChain.flavor === existingChain.flavor &&
@@ -55,9 +59,18 @@ export class ConfigLoader {
           }
         }
         if (!found) {
-          toolchains.push(newToolChain);
+          this.toolchains.push(newToolChain);
         }
       }
     }
+
+    if (this.selectedName === 'none') {
+      this.selectedName = this.toolchains[0].name;
+      this.statusBar.text = this.selectedName;
+    }
+
+    this.statusBar.show();
+
+    console.log('finsihed loading');
   }
 }
