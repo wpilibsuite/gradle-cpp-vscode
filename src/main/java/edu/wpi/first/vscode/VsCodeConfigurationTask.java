@@ -26,18 +26,12 @@ import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.VisualCppPlatformToolChain;
-import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
-import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.UcrtInstall;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualCpp;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdk;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkInstall;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
@@ -55,19 +49,18 @@ public class VsCodeConfigurationTask extends DefaultTask {
     public Source source = new Source();
     public Source exportedHeaders = new Source();
     public boolean cpp = true;
+    public Set<String> args = new HashSet<>();
+    public Map<String, String> macros = new HashMap<String, String>();
   }
 
   static class BinaryObject {
     public String componentName = "";
     public List<SourceSet> sourceSets = new ArrayList<>();
     public Set<String> libHeaders = new HashSet<>();
-    public List<String> cppArgs = new ArrayList<>();
-    public List<String> cArgs = new ArrayList<>();
-    public Map<String, String> cppMacros = new HashMap<>();
-    public Map<String, String> cMacros = new HashMap<>();
   }
 
   static class ToolChains {
+    public String name;
     public String architecture;
     public String operatingSystem;
     public String flavor;
@@ -76,12 +69,8 @@ public class VsCodeConfigurationTask extends DefaultTask {
     public String cPath = "";
     public boolean msvc = true;
 
-    public transient boolean hasBeenSetUp = false;
-
-    public Set<String> systemCppIncludes = new HashSet<>();
     public Map<String, String> systemCppMacros = new HashMap<>();
     public Set<String> systemCppArgs = new HashSet<>();
-    public Set<String> systemCIncludes = new HashSet<>();
     public Map<String, String> systemCMacros = new HashMap<>();
     public Set<String> systemCArgs = new HashSet<>();
 
@@ -116,11 +105,18 @@ public class VsCodeConfigurationTask extends DefaultTask {
 
     VsCodeConfigurationExtension ext = getProject().getExtensions().getByType(VsCodeConfigurationExtension.class);
 
-    for (NativeBinarySpec bin : ext.binaries) {
+    for (NativeBinarySpec bin : ext._binaries) {
+      if (!bin.isBuildable()) {
+        continue;
+      }
+
       BinaryObject bo = new BinaryObject();
 
       for (LanguageSourceSet sSet : bin.getInputs()) {
         if (sSet instanceof HeaderExportingSourceSet) {
+          if (!(sSet instanceof CppSourceSet) && !(sSet instanceof CSourceSet)) {
+            continue;
+          }
           HeaderExportingSourceSet hSet = (HeaderExportingSourceSet) sSet;
           SourceSet s = new SourceSet();
 
@@ -138,11 +134,18 @@ public class VsCodeConfigurationTask extends DefaultTask {
           s.exportedHeaders.includes.addAll(hSet.getExportedHeaders().getIncludes());
           s.exportedHeaders.excludes.addAll(hSet.getExportedHeaders().getExcludes());
 
+          s.args.addAll(bin.getcCompiler().getArgs());
+          s.macros.putAll(bin.getCppCompiler().getMacros());
+
           bo.sourceSets.add(s);
 
           if (sSet instanceof CppSourceSet) {
+            s.args.addAll(bin.getCppCompiler().getArgs());
+            s.macros.putAll(bin.getCppCompiler().getMacros());
             s.cpp = true;
           } else if (sSet instanceof CSourceSet) {
+            s.args.addAll(bin.getcCompiler().getArgs());
+            s.macros.putAll(bin.getcCompiler().getMacros());
             s.cpp = false;
           }
 
@@ -155,11 +158,6 @@ public class VsCodeConfigurationTask extends DefaultTask {
         }
       }
 
-      bo.cArgs.addAll(bin.getcCompiler().getArgs());
-      bo.cppArgs.addAll(bin.getCppCompiler().getArgs());
-      bo.cppMacros.putAll(bin.getCppCompiler().getMacros());
-      bo.cMacros.putAll(bin.getcCompiler().getMacros());
-
       ToolChains tc = new ToolChains();
 
       tc.flavor = bin.getFlavor().getName();
@@ -168,6 +166,8 @@ public class VsCodeConfigurationTask extends DefaultTask {
       tc.architecture = bin.getTargetPlatform().getArchitecture().getName();
       tc.operatingSystem = bin.getTargetPlatform().getOperatingSystem().getName();
 
+      tc.name = ext.getNameForConfiguration(tc.architecture, tc.operatingSystem, tc.flavor, tc.buildType);
+
       bo.componentName = bin.getComponent().getName();
 
       CommandLineToolConfigurationInternal cppInternal = null;
@@ -175,192 +175,93 @@ public class VsCodeConfigurationTask extends DefaultTask {
 
       NativeToolChain toolChain = bin.getToolChain();
 
-      if (!tc.hasBeenSetUp) {
-        tc.hasBeenSetUp = true;
+      for (VisualCppPlatformToolChain msvcPlat : ext._visualCppPlatforms) {
+        if (msvcPlat.getPlatform().equals(bin.getTargetPlatform())) {
+          tc.msvc = true;
+          cppInternal = (CommandLineToolConfigurationInternal) msvcPlat.getCppCompiler();
+          cInternal = (CommandLineToolConfigurationInternal) msvcPlat.getcCompiler();
 
-        for (VisualCppPlatformToolChain msvcPlat : ext.visualCppPlatforms) {
-          if (msvcPlat.getPlatform().equals(bin.getTargetPlatform())) {
-            tc.msvc = true;
-            cppInternal = (CommandLineToolConfigurationInternal) msvcPlat.getCppCompiler();
-            cInternal = (CommandLineToolConfigurationInternal) msvcPlat.getcCompiler();
-
-            if (toolChain instanceof org.gradle.nativeplatform.toolchain.VisualCpp) {
-              org.gradle.nativeplatform.toolchain.VisualCpp vcpp = (org.gradle.nativeplatform.toolchain.VisualCpp) toolChain;
-              SearchResult<VisualStudioInstall> vsiSearch = ext.vsLocator.locateComponent(vcpp.getInstallDir());
-              if (vsiSearch.isAvailable()) {
-                VisualStudioInstall vsi = vsiSearch.getComponent();
-                VisualCpp vscpp = vsi.getVisualCpp().forPlatform((NativePlatformInternal) bin.getTargetPlatform());
-                tc.cppPath = vscpp.getCompilerExecutable().toString();
-                tc.cPath = vscpp.getCompilerExecutable().toString();
-
-                for (File f : vscpp.getIncludeDirs()) {
-                  tc.systemCppIncludes.add(f.toString());
-                }
-
-                tc.systemCppMacros.putAll(vscpp.getPreprocessorMacros());
-
-                for (File f : vscpp.getIncludeDirs()) {
-                  tc.systemCIncludes.add(f.toString());
-                }
-
-                tc.systemCMacros.putAll(vscpp.getPreprocessorMacros());
-              }
-
-              SearchResult<UcrtInstall> ucrtSearch = ext.vsucrtLocator.locateComponent(vcpp.getWindowsSdkDir());
-              if (ucrtSearch.isAvailable()) {
-                UcrtInstall wsdki = ucrtSearch.getComponent();
-                SystemLibraries wsdk = wsdki.getCRuntime((NativePlatformInternal) bin.getTargetPlatform());
-
-                for (File f : wsdk.getIncludeDirs()) {
-                  tc.systemCppIncludes.add(f.toString());
-                }
-
-                tc.systemCppMacros.putAll(wsdk.getPreprocessorMacros());
-
-                for (File f : wsdk.getIncludeDirs()) {
-                  tc.systemCIncludes.add(f.toString());
-                }
-
-                tc.systemCMacros.putAll(wsdk.getPreprocessorMacros());
-              }
-
-              SearchResult<WindowsSdkInstall> wsdkSearch = ext.vssdkLocator.locateComponent(vcpp.getWindowsSdkDir());
-              if (wsdkSearch.isAvailable()) {
-                WindowsSdkInstall wsdki = wsdkSearch.getComponent();
-                WindowsSdk wsdk = wsdki.forPlatform((NativePlatformInternal) bin.getTargetPlatform());
-
-                for (File f : wsdk.getIncludeDirs()) {
-                  tc.systemCppIncludes.add(f.toString());
-                }
-
-                tc.systemCppMacros.putAll(wsdk.getPreprocessorMacros());
-
-                for (File f : wsdk.getIncludeDirs()) {
-                  tc.systemCIncludes.add(f.toString());
-                }
-
-                tc.systemCMacros.putAll(wsdk.getPreprocessorMacros());
-              }
-            }
-          }
-
-          for (GccPlatformToolChain gccPlat : ext.gccLikePlatforms) {
-            if (gccPlat.getPlatform().equals(bin.getTargetPlatform())) {
-              tc.msvc = false;
-              cppInternal = (CommandLineToolConfigurationInternal) gccPlat.getCppCompiler();
-              cInternal = (CommandLineToolConfigurationInternal) gccPlat.getcCompiler();
-              tc.cppPath = gccPlat.getCppCompiler().getExecutable();
-              tc.cPath = gccPlat.getcCompiler().getExecutable();
-
-              ToolSearchPath tsp = new ToolSearchPath(OperatingSystem.current());
-              CommandLineToolSearchResult cppSearch = tsp.locate(ToolType.CPP_COMPILER,
-                  gccPlat.getCppCompiler().getExecutable());
-              if (cppSearch.isAvailable()) {
-                tc.cppPath = cppSearch.getTool().toString();
-              }
-              CommandLineToolSearchResult cSearch = tsp.locate(ToolType.C_COMPILER,
-                  gccPlat.getcCompiler().getExecutable());
-              if (cSearch.isAvailable()) {
-                tc.cPath = cSearch.getTool().toString();
-              }
+          if (toolChain instanceof org.gradle.nativeplatform.toolchain.VisualCpp) {
+            org.gradle.nativeplatform.toolchain.VisualCpp vcpp = (org.gradle.nativeplatform.toolchain.VisualCpp) toolChain;
+            SearchResult<VisualStudioInstall> vsiSearch = ext._vsLocator.locateComponent(vcpp.getInstallDir());
+            if (vsiSearch.isAvailable()) {
+              VisualStudioInstall vsi = vsiSearch.getComponent();
+              VisualCpp vscpp = vsi.getVisualCpp().forPlatform((NativePlatformInternal) bin.getTargetPlatform());
+              tc.cppPath = vscpp.getCompilerExecutable().toString();
+              tc.cPath = vscpp.getCompilerExecutable().toString();
+              break;
             }
           }
         }
 
-        List<String> list = new ArrayList<>();
-        cppInternal.getArgAction().execute(list);
-
-        for (int i = 0; i < list.size(); i++) {
-          String trim = list.get(i).trim();
-          if (trim.startsWith("-D") || trim.startsWith("/D")) {
-            list.remove(i);
-          } else {
-            continue;
-          }
-          trim = trim.substring(2);
-          if (trim.contains("=")) {
-            String[] split = trim.split("=", 2);
-            tc.systemCppMacros.put(split[0], split[1]);
-          } else {
-            tc.systemCppMacros.put(trim, "");
-          }
-        }
-
-        tc.systemCppArgs.addAll(list);
-
-        list.clear();
-
-        cInternal.getArgAction().execute(list);
-
-        for (int i = 0; i < list.size(); i++) {
-          String trim = list.get(i).trim();
-          if (trim.startsWith("-D") || trim.startsWith("/D")) {
-            list.remove(i);
-          } else {
-            continue;
-          }
-          trim = trim.substring(2);
-          if (trim.contains("=")) {
-            String[] split = trim.split("=", 2);
-            tc.systemCMacros.put(split[0], split[1]);
-          } else {
-            tc.systemCMacros.put(trim, "");
-          }
-        }
-
-        tc.systemCArgs.addAll(list);
-
-
-        for (GccPlatformToolChain gccPlat : ext.gccLikePlatforms) {
+        for (GccPlatformToolChain gccPlat : ext._gccLikePlatforms) {
           if (gccPlat.getPlatform().equals(bin.getTargetPlatform())) {
+            tc.msvc = false;
+            cppInternal = (CommandLineToolConfigurationInternal) gccPlat.getCppCompiler();
+            cInternal = (CommandLineToolConfigurationInternal) gccPlat.getcCompiler();
+            tc.cppPath = gccPlat.getCppCompiler().getExecutable();
+            tc.cPath = gccPlat.getcCompiler().getExecutable();
 
-            GccMetadataProvider gmp;
-            List<String> additionalCppArgs = new ArrayList<>();
-            List<String> additionalCArgs = new ArrayList<>();
-
-
-            if (toolChain instanceof Clang) {
-              gmp = GccMetadataProvider.forClang(ext.execActionFactory);
-            } else {
-              gmp = GccMetadataProvider.forGcc(ext.execActionFactory);
-              additionalCppArgs.add("-xc++");
-              for (String arg : tc.systemCppArgs) {
-                if (arg.contains("-std=")) {
-                  additionalCppArgs.add(arg);
-                  break;
-                }
-              }
-              additionalCArgs.add("-xc");
+            ToolSearchPath tsp = new ToolSearchPath(OperatingSystem.current());
+            CommandLineToolSearchResult cppSearch = tsp.locate(ToolType.CPP_COMPILER,
+                gccPlat.getCppCompiler().getExecutable());
+            if (cppSearch.isAvailable()) {
+              tc.cppPath = cppSearch.getTool().toString();
             }
-
-            SearchResult<GccMetadata> md = gmp.getCompilerMetaData(new File(tc.cppPath), additionalCppArgs);
-            if (md.isAvailable()) {
-              SystemLibraries sl = md.getComponent().getSystemLibraries();
-              for (File s : sl.getIncludeDirs()) {
-                try {
-                  tc.systemCppIncludes.add(s.getCanonicalPath());
-                } catch (IOException e) {
-                  e.printStackTrace();
-                }
-              }
-              tc.systemCppMacros.putAll(sl.getPreprocessorMacros());
+            CommandLineToolSearchResult cSearch = tsp.locate(ToolType.C_COMPILER,
+                gccPlat.getcCompiler().getExecutable());
+            if (cSearch.isAvailable()) {
+              tc.cPath = cSearch.getTool().toString();
             }
-
-            md = gmp.getCompilerMetaData(new File(tc.cPath), additionalCArgs);
-            if (md.isAvailable()) {
-              SystemLibraries sl = md.getComponent().getSystemLibraries();
-              for (File s : sl.getIncludeDirs()) {
-                try {
-                  tc.systemCIncludes.add(s.getCanonicalPath());
-                } catch (IOException e) {
-                  e.printStackTrace();
-                }
-              }
-              tc.systemCMacros.putAll(sl.getPreprocessorMacros());
+            if (cppSearch.isAvailable() && cSearch.isAvailable()) {
+              break;
             }
           }
         }
       }
+
+      List<String> list = new ArrayList<>();
+      cppInternal.getArgAction().execute(list);
+
+      for (int i = 0; i < list.size(); i++) {
+        String trim = list.get(i).trim();
+        if (trim.startsWith("-D") || trim.startsWith("/D")) {
+          list.remove(i);
+        } else {
+          continue;
+        }
+        trim = trim.substring(2);
+        if (trim.contains("=")) {
+          String[] split = trim.split("=", 2);
+          tc.systemCppMacros.put(split[0], split[1]);
+        } else {
+          tc.systemCppMacros.put(trim, "");
+        }
+      }
+
+      tc.systemCppArgs.addAll(list);
+
+      list.clear();
+
+      cInternal.getArgAction().execute(list);
+
+      for (int i = 0; i < list.size(); i++) {
+        String trim = list.get(i).trim();
+        if (trim.startsWith("-D") || trim.startsWith("/D")) {
+          list.remove(i);
+        } else {
+          continue;
+        }
+        trim = trim.substring(2);
+        if (trim.contains("=")) {
+          String[] split = trim.split("=", 2);
+          tc.systemCMacros.put(split[0], split[1]);
+        } else {
+          tc.systemCMacros.put(trim, "");
+        }
+      }
+
+      tc.systemCArgs.addAll(list);
 
       boolean added = toolChains.add(tc);
       if (!added) {

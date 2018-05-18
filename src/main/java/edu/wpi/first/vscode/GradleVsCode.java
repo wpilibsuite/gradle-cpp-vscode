@@ -40,12 +40,12 @@ public class GradleVsCode implements Plugin<Project> {
         if (tc instanceof VisualCpp) {
           VisualCpp vtc = (VisualCpp)tc;
           vtc.eachPlatform(t -> {
-            ext.visualCppPlatforms.add(t);
+            ext._visualCppPlatforms.add(t);
           });
         } else if (tc instanceof GccCompatibleToolChain) {
           GccCompatibleToolChain gtc = (GccCompatibleToolChain)tc;
           gtc.eachPlatform(t -> {
-              ext.gccLikePlatforms.add(t);
+              ext._gccLikePlatforms.add(t);
           });
         }
       }
@@ -62,17 +62,17 @@ public class GradleVsCode implements Plugin<Project> {
 
       VsCodeConfigurationExtension ext = extCont.getByType(VsCodeConfigurationExtension.class);
 
-      ext.vsLocator = locator;
-      ext.vssdkLocator = sdkLocator;
-      ext.vsucrtLocator = ucrtLocator;
-      ext.execActionFactory = execActionFactory;
+      ext._vsLocator = locator;
+      ext._vssdkLocator = sdkLocator;
+      ext._vsucrtLocator = ucrtLocator;
+      ext._execActionFactory = execActionFactory;
 
       for(BinarySpec oBin : bins) {
         if (!(oBin instanceof NativeBinarySpec)) {
           continue;
         }
         NativeBinarySpec bin = (NativeBinarySpec)oBin;
-        ext.binaries.add(bin);
+        ext._binaries.add(bin);
       }
     }
   }
