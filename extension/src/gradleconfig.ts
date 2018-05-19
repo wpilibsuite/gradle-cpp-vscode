@@ -3,7 +3,7 @@
 import * as jsonc from 'jsonc-parser';
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import { ToolChain, Binary, Source } from './jsonformats';
+import { ToolChain, Source } from './jsonformats';
 import * as path from 'path';
 import * as glob from 'glob';
 import { PersistentFolderState } from './persistentState';
@@ -21,11 +21,11 @@ function promisifyReadFile(location: string): Promise<string> {
 }
 
 export interface BinaryFind {
-  binary: Binary;
+  includePaths: string[];
   cpp: boolean;
   compiler: string;
   msvc: boolean;
-  macros: { [name: string]: string };
+  macros: string[];
   args: string[];
   uri: vscode.Uri;
 }
@@ -58,11 +58,16 @@ export class GradleConfig {
 
   private configRelativePattern: vscode.RelativePattern;
   private configWatcher: vscode.FileSystemWatcher;
+  private outputChannel: vscode.OutputChannel;
+  public refreshEvent: vscode.EventEmitter<void>;
 
-  constructor(workspace: vscode.WorkspaceFolder) {
+  constructor(workspace: vscode.WorkspaceFolder, outputChannel: vscode.OutputChannel) {
     this.workspace = workspace;
+    this.outputChannel = outputChannel;
 
     this.configRelativePattern = new vscode.RelativePattern(workspace, this.configFileGlob);
+
+    this.refreshEvent = new vscode.EventEmitter();
 
     this.configWatcher = vscode.workspace.createFileSystemWatcher(this.configRelativePattern);
 
@@ -74,6 +79,8 @@ export class GradleConfig {
     this.statusBar.text = this.selectedName.Value;
     this.statusBar.tooltip = 'Click to change toolchain';
     this.statusBar.command = 'gradlevscpp.selectToolchain';
+
+
 
     this.disposables.push(this.statusBar);
 
@@ -145,6 +152,10 @@ export class GradleConfig {
     return promises;
   }
 
+  public async runGradleRefresh(): Promise<void> {
+    this.outputChannel.show();
+  }
+
   public async findMatchingBinary(uris: vscode.Uri[]): Promise<BinaryFind[]> {
 
     let findCount = 0;
@@ -165,6 +176,7 @@ export class GradleConfig {
         uris.splice(i, 1);
         continue;
       }
+
       for (const f of this.foundFiles) {
         if (f.uri.fsPath === uris[i].fsPath) {
           findCount++;
@@ -196,12 +208,20 @@ export class GradleConfig {
                       const args: string[] = [];
                       args.push(...tc.systemCppArgs);
                       args.push(...sourceSet.args);
+                      const macros: string[] = [];
+                      macros.push(...tc.systemCppMacros);
+                      macros.push(...sourceSet.macros);
+                      const includePaths: string[] = [];
+                      includePaths.push(...bin.libHeaders);
+                      for (const s of bin.sourceSets) {
+                        includePaths.push(...s.exportedHeaders.srcDirs);
+                      }
                       finds.push({
                         args: args,
-                        binary: bin,
+                        includePaths: includePaths,
                         compiler: tc.cppPath,
                         cpp: true,
-                        macros: tc.systemCppMacros,
+                        macros: macros,
                         msvc: tc.msvc,
                         uri: uri
                       });
@@ -209,12 +229,20 @@ export class GradleConfig {
                       const args: string[] = [];
                       args.push(...tc.systemCArgs);
                       args.push(...sourceSet.args);
+                      const macros: string[] = [];
+                      macros.push(...tc.systemCMacros);
+                      macros.push(...sourceSet.macros);
+                      const includePaths: string[] = [];
+                      includePaths.push(...bin.libHeaders);
+                      for (const s of bin.sourceSets) {
+                        includePaths.push(...s.exportedHeaders.srcDirs);
+                      }
                       finds.push({
                         args: args,
-                        binary: bin,
+                        includePaths: includePaths,
                         compiler: tc.cppPath,
                         cpp: false,
-                        macros: tc.systemCMacros,
+                        macros: macros,
                         msvc: tc.msvc,
                         uri: uri
                       });
@@ -263,6 +291,8 @@ export class GradleConfig {
           this.toolchains.push(newToolChain);
         }
       }
+
+      this.refreshEvent.fire();
     }
 
     if (this.selectedName.Value === 'none') {

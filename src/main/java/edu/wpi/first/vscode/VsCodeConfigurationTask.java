@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +49,7 @@ public class VsCodeConfigurationTask extends DefaultTask {
     public Source exportedHeaders = new Source();
     public boolean cpp = true;
     public Set<String> args = new HashSet<>();
-    public Map<String, String> macros = new HashMap<String, String>();
+    public Set<String> macros = new HashSet<>();
   }
 
   static class BinaryObject {
@@ -69,9 +68,9 @@ public class VsCodeConfigurationTask extends DefaultTask {
     public String cPath = "";
     public boolean msvc = true;
 
-    public Map<String, String> systemCppMacros = new HashMap<>();
+    public Set<String> systemCppMacros = new HashSet<>();
     public Set<String> systemCppArgs = new HashSet<>();
-    public Map<String, String> systemCMacros = new HashMap<>();
+    public Set<String> systemCMacros = new HashSet<>();
     public Set<String> systemCArgs = new HashSet<>();
 
     public List<BinaryObject> binaries = new ArrayList<>();
@@ -134,18 +133,23 @@ public class VsCodeConfigurationTask extends DefaultTask {
           s.exportedHeaders.includes.addAll(hSet.getExportedHeaders().getIncludes());
           s.exportedHeaders.excludes.addAll(hSet.getExportedHeaders().getExcludes());
 
-          s.args.addAll(bin.getcCompiler().getArgs());
-          s.macros.putAll(bin.getCppCompiler().getMacros());
+          for (Map.Entry<String, String> macro : bin.getCppCompiler().getMacros().entrySet()) {
+            s.macros.add("-D" + macro.getKey() + "=" + macro.getValue());
+          }
 
           bo.sourceSets.add(s);
 
           if (sSet instanceof CppSourceSet) {
             s.args.addAll(bin.getCppCompiler().getArgs());
-            s.macros.putAll(bin.getCppCompiler().getMacros());
+            for (Map.Entry<String, String> macro : bin.getCppCompiler().getMacros().entrySet()) {
+              s.macros.add("-D" + macro.getKey() + "=" + macro.getValue());
+            }
             s.cpp = true;
           } else if (sSet instanceof CSourceSet) {
             s.args.addAll(bin.getcCompiler().getArgs());
-            s.macros.putAll(bin.getcCompiler().getMacros());
+            for (Map.Entry<String, String> macro : bin.getcCompiler().getMacros().entrySet()) {
+              s.macros.add("-D" + macro.getKey() + "=" + macro.getValue());
+            }
             s.cpp = false;
           }
 
@@ -239,13 +243,7 @@ public class VsCodeConfigurationTask extends DefaultTask {
           } else {
             continue;
           }
-          trim = trim.substring(2);
-          if (trim.contains("=")) {
-            String[] split = trim.split("=", 2);
-            tc.systemCppMacros.put(split[0], split[1]);
-          } else {
-            tc.systemCppMacros.put(trim, "");
-          }
+          tc.systemCppMacros.add(trim);
         }
 
         tc.systemCppArgs.addAll(list);
@@ -261,13 +259,7 @@ public class VsCodeConfigurationTask extends DefaultTask {
           } else {
             continue;
           }
-          trim = trim.substring(2);
-          if (trim.contains("=")) {
-            String[] split = trim.split("=", 2);
-            tc.systemCMacros.put(split[0], split[1]);
-          } else {
-            tc.systemCMacros.put(trim, "");
-          }
+          tc.systemCMacros.add(trim);
         }
 
         tc.systemCArgs.addAll(list);

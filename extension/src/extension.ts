@@ -2,8 +2,21 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { GradleConfig } from './gradleconfig';
+//import { GradleConfig } from './gradleconfig';
 import { setExtensionContext } from './persistentState';
+import { ApiProvider } from './apiprovider';
+import { CppToolsApi, CustomConfigurationProvider } from './cppapi';
+
+class ShimTools implements CppToolsApi {
+    public providers: CustomConfigurationProvider[] = [];
+
+    registerCustomConfigurationProvider(provider: CustomConfigurationProvider): void {
+        this.providers.push(provider);
+    }
+    didChangeCustomConfiguration(provider: CustomConfigurationProvider): void {
+        // noop
+    }
+}
 
 
 // this method is called when your extension is activated
@@ -18,36 +31,55 @@ export async function activate(context: vscode.ExtensionContext) {
 
     const workspaces = vscode.workspace.workspaceFolders;
 
-    let configLoaders: GradleConfig[] = [];
+    const cppToolsApi: ShimTools = new ShimTools();
+
+    const outputChannel: vscode.OutputChannel = vscode.window.createOutputChannel('Gradle VsCode');
+    context.subscriptions.push(outputChannel);
+
+    let configLoaders: ApiProvider[] = [];
     let promises: Promise<void>[] = [];
 
     if (workspaces !== undefined) {
         for (const wp of workspaces) {
-            const configLoader = new GradleConfig(wp);
+            const configLoader = new ApiProvider(wp, outputChannel, cppToolsApi);
             configLoaders.push(configLoader);
             promises.push(configLoader.loadConfigs());
         }
     }
 
+
+
+
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(async e => {
         if (e === undefined) {
             return;
         }
-        const workspace = vscode.workspace.getWorkspaceFolder(e.document.uri);
-        if (workspace === undefined) {
-            return;
-        }
-        for (const c of configLoaders) {
-            if (c.workspace.uri.fsPath === workspace.uri.fsPath) {
-                const match = await c.findMatchingBinary([e.document.uri]);
+
+        for (const c of cppToolsApi.providers) {
+            if (await c.canProvideConfiguration(e.document.uri)) {
+                const match = await c.provideConfigurations([e.document.uri]);
                 console.log(match);
             }
         }
     }));
 
+
     await Promise.all(promises);
 
     context.subscriptions.push(vscode.commands.registerCommand('gradlevscpp.selectToolchain', async () => {
+        const workspaces = vscode.workspace.workspaceFolders;
+
+        if (workspaces === undefined) {
+            return;
+        }
+
+        for (const wp of workspaces) {
+            for (const loader of configLoaders) {
+                if (wp.uri.fsPath === loader.workspace.uri.fsPath) {
+                    await loader.selectToolChain();
+                }
+            }
+        }
     }));
 
     // The command has been defined in the package.json file
@@ -58,8 +90,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
         const workspaces = vscode.workspace.workspaceFolders;
 
-        let promises: Promise<void>[] = [];
-
         if (workspaces === undefined) {
             return;
         }
@@ -67,12 +97,11 @@ export async function activate(context: vscode.ExtensionContext) {
         for (const wp of workspaces) {
             for (const loader of configLoaders) {
                 if (wp.uri.fsPath === loader.workspace.uri.fsPath) {
-                    promises.push(loader.loadConfigs());
+                    await loader.runGradleRefresh();
+                    await loader.loadConfigs();
                 }
             }
         }
-
-        await Promise.all(promises);
     });
 
 
