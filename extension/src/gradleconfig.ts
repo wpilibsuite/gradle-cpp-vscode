@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import { ToolChain, Binary, Source } from './jsonformats';
 import * as path from 'path';
 import * as glob from 'glob';
+import { PersistentFolderState } from './persistentState';
 
 function promisifyReadFile(location: string): Promise<string> {
   return new Promise<string>((resolve, reject) => {
@@ -46,7 +47,7 @@ export function normalizeDriveLetter(path: string): string {
 export class GradleConfig {
   public workspace: vscode.WorkspaceFolder;
   private toolchains: ToolChain[] = [];
-  private selectedName: string = 'none';
+  private selectedName: PersistentFolderState<string>;
   private disposables: vscode.Disposable[] = [];
 
   private foundFiles: BinaryFind[] = [];
@@ -67,49 +68,28 @@ export class GradleConfig {
 
     this.disposables.push(this.configWatcher);
 
+    this.selectedName = new PersistentFolderState<string>('gradleProperties.selectedName', 'none', workspace.uri.fsPath);
+
     this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 2);
-    this.statusBar.text = this.selectedName;
+    this.statusBar.text = this.selectedName.Value;
     this.statusBar.tooltip = 'Click to change toolchain';
     this.statusBar.command = 'gradlevscpp.selectToolchain';
 
     this.disposables.push(this.statusBar);
-  }
 
-  private enumerateSourceSet2(source: Source): Thenable<vscode.Uri[]>[] {
-    const promises: Thenable<vscode.Uri[]>[] = [];
-    for (const s of source.srcDirs) {
-      let includes: string = '**/*';
-      if (source.includes.length === 0) {
-        includes = '{';
-        let first = true;
-        for (const i of source.includes) {
-          if (first) {
-            first = false;
-          } else {
-            includes += ',';
-          }
-          includes += i;
-        }
-        includes += '}';
-      }
-      let ip = new vscode.RelativePattern(s, includes);
-      let excludes: string = '';
-      if (source.excludes.length === 0) {
-        excludes = '{';
-        let first = true;
-        for (const i of source.excludes) {
-          if (first) {
-            first = false;
-          } else {
-            excludes += ',';
-          }
-          excludes += i;
-        }
-        excludes += '}';
-      }
-      promises.push(vscode.workspace.findFiles(ip, excludes));
-    }
-    return promises;
+    this.configWatcher.onDidCreate(async e => {
+      await this.loadConfigs();
+    }, this.disposables);
+
+    this.configWatcher.onDidDelete(e => {
+      this.statusBar.text = 'none';
+      this.toolchains = [];
+      this.foundFiles = [];
+    }, this.disposables);
+
+    this.configWatcher.onDidChange(async e => {
+      await this.loadConfigs();
+    }, this.disposables);
   }
 
   private enumerateSourceSet(source: Source): Promise<string[]>[] {
@@ -180,8 +160,8 @@ export class GradleConfig {
       const end6 = uris[i].fsPath.endsWith('.h');
 
       if (!end1 && !end2
-       && !end3 && !end4
-       && !end5 && !end6) {
+        && !end3 && !end4
+        && !end5 && !end6) {
         uris.splice(i, 1);
         continue;
       }
@@ -200,7 +180,7 @@ export class GradleConfig {
     }
 
     for (const tc of this.toolchains) {
-      if (tc.name === this.selectedName) {
+      if (tc.name === this.selectedName.Value) {
         for (const bin of tc.binaries) {
           for (const sourceSet of bin.sourceSets) {
             const arr: Promise<string[]>[] = [];
@@ -285,21 +265,21 @@ export class GradleConfig {
       }
     }
 
-    if (this.selectedName === 'none') {
-      this.selectedName = this.toolchains[0].name;
-      this.statusBar.text = this.selectedName;
+    if (this.selectedName.Value === 'none') {
+      this.selectedName.Value = this.toolchains[0].name;
+      this.statusBar.text = this.selectedName.Value;
     }
 
     let found = false;
     for (const t of this.toolchains) {
-      if (t.name === this.selectedName) {
+      if (t.name === this.selectedName.Value) {
         found = true;
       }
     }
 
     if (!found) {
-      this.selectedName = this.toolchains[0].name;
-      this.statusBar.text = this.selectedName;
+      this.selectedName.Value = this.toolchains[0].name;
+      this.statusBar.text = this.selectedName.Value;
     }
 
     this.foundFiles = [];
@@ -320,7 +300,7 @@ export class GradleConfig {
       placeHolder: 'Pick a configuration'
     });
     if (result !== undefined) {
-      this.selectedName = result;
+      this.selectedName.Value = result;
       this.statusBar.text = result;
     }
   }
