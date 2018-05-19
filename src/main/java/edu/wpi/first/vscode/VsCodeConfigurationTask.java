@@ -181,7 +181,7 @@ public class VsCodeConfigurationTask extends DefaultTask {
         }
       } else {
 
-        tc.name = ext.getNameForConfiguration(tc.architecture, tc.operatingSystem, tc.flavor, tc.buildType);
+        tc.name = bin.getTargetPlatform().getName();
 
         CommandLineToolConfigurationInternal cppInternal = null;
         CommandLineToolConfigurationInternal cInternal = null;

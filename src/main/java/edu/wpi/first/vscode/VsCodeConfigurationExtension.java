@@ -28,37 +28,4 @@ public class VsCodeConfigurationExtension {
   public boolean getPrettyPrinting() {
     return prettyPrint;
   }
-
-  List<ToolChainConfiguration> configurations = new ArrayList<>();
-
-  String getNameForConfiguration(String architecture, String operatingSystem, String flavor, String buildType) {
-    for (ToolChainConfiguration tc : configurations) {
-      if (tc.matches4(architecture, operatingSystem, flavor, buildType)) {
-        return tc.name;
-      }
-    }
-    for (ToolChainConfiguration tc : configurations) {
-      if (tc.matches2(architecture, operatingSystem)) {
-        return tc.name;
-      }
-    }
-    for (ToolChainConfiguration tc : configurations) {
-      if (tc.matches0()) {
-        return tc.name;
-      }
-    }
-    return architecture + operatingSystem + flavor + buildType;
-  }
-
-  public void addToolChainName(String name, String architecture, String operatingSystem, String flavor, String buildType) {
-    configurations.add(new ToolChainConfiguration(name, architecture, operatingSystem, flavor, buildType));
-  }
-
-  public void addToolChainName(String name, String architecture, String operatingSystem) {
-    configurations.add(new ToolChainConfiguration(name, architecture, operatingSystem));
-  }
-
-  public void addToolChainName(String name) {
-    configurations.add(new ToolChainConfiguration(name));
-  }
 }
