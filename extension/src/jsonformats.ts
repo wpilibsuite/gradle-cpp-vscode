@@ -29,9 +29,9 @@ export interface ToolChain {
   cppPath: string;
   cPath: string;
   msvc: boolean;
-  systemCppMacros: string[];
+  systemCppMacros: { [name: string]: string };
   systemCppArgs: string[];
-  systemCMacros: string[];
+  systemCMacros: { [name: string]: string };
   systemCArgs: string[];
   binaries: Binary[];
 }

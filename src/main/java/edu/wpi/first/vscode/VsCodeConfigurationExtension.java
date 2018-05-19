@@ -19,6 +19,15 @@ public class VsCodeConfigurationExtension {
   public ExecActionFactory _execActionFactory;
   public List<VisualCppPlatformToolChain> _visualCppPlatforms = new ArrayList<>();
   public List<GccPlatformToolChain> _gccLikePlatforms = new ArrayList<>();
+  private boolean prettyPrint = true;
+
+  public void setPrettyPrinting(boolean prettyPrint) {
+    this.prettyPrint = prettyPrint;
+  }
+
+  public boolean getPrettyPrinting() {
+    return prettyPrint;
+  }
 
   List<ToolChainConfiguration> configurations = new ArrayList<>();
 

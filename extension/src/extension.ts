@@ -2,7 +2,8 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { ConfigLoader } from './configloader';
+import { GradleConfig } from './gradleconfig';
+
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -12,22 +13,34 @@ export async function activate(context: vscode.ExtensionContext) {
     // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "gradle-vscode-cpp" is now active!');
 
-
-
-
-
     const workspaces = vscode.workspace.workspaceFolders;
 
-    let configLoaders: ConfigLoader[] = [];
+    let configLoaders: GradleConfig[] = [];
     let promises: Promise<void>[] = [];
 
     if (workspaces !== undefined) {
         for (const wp of workspaces) {
-            const configLoader = new ConfigLoader(wp);
+            const configLoader = new GradleConfig(wp);
             configLoaders.push(configLoader);
             promises.push(configLoader.loadConfigs());
         }
     }
+
+    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(async e => {
+        if (e === undefined) {
+            return;
+        }
+        const workspace = vscode.workspace.getWorkspaceFolder(e.document.uri);
+        if (workspace === undefined) {
+            return;
+        }
+        for (const c of configLoaders) {
+            if (c.workspace.uri.fsPath === workspace.uri.fsPath) {
+                const match = await c.findMatchingBinary([e.document.uri]);
+                console.log(match);
+            }
+        }
+    }));
 
     await Promise.all(promises);
 
@@ -42,14 +55,17 @@ export async function activate(context: vscode.ExtensionContext) {
 
         const workspaces = vscode.workspace.workspaceFolders;
 
-        let configLoaders: ConfigLoader[] = [];
         let promises: Promise<void>[] = [];
 
-        if (workspaces !== undefined) {
-            for (const wp of workspaces) {
-                const configLoader = new ConfigLoader(wp);
-                configLoaders.push(configLoader);
-                promises.push(configLoader.loadConfigs());
+        if (workspaces === undefined) {
+            return;
+        }
+
+        for (const wp of workspaces) {
+            for (const loader of configLoaders) {
+                if (wp.uri.fsPath === loader.workspace.uri.fsPath) {
+                    promises.push(loader.loadConfigs());
+                }
             }
         }
 

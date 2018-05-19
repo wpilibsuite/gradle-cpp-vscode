@@ -158,6 +158,8 @@ public class VsCodeConfigurationTask extends DefaultTask {
         }
       }
 
+      bo.componentName = bin.getComponent().getName();
+
       ToolChains tc = new ToolChains();
 
       tc.flavor = bin.getFlavor().getName();
@@ -166,103 +168,6 @@ public class VsCodeConfigurationTask extends DefaultTask {
       tc.architecture = bin.getTargetPlatform().getArchitecture().getName();
       tc.operatingSystem = bin.getTargetPlatform().getOperatingSystem().getName();
 
-      tc.name = ext.getNameForConfiguration(tc.architecture, tc.operatingSystem, tc.flavor, tc.buildType);
-
-      bo.componentName = bin.getComponent().getName();
-
-      CommandLineToolConfigurationInternal cppInternal = null;
-      CommandLineToolConfigurationInternal cInternal = null;
-
-      NativeToolChain toolChain = bin.getToolChain();
-
-      for (VisualCppPlatformToolChain msvcPlat : ext._visualCppPlatforms) {
-        if (msvcPlat.getPlatform().equals(bin.getTargetPlatform())) {
-          tc.msvc = true;
-          cppInternal = (CommandLineToolConfigurationInternal) msvcPlat.getCppCompiler();
-          cInternal = (CommandLineToolConfigurationInternal) msvcPlat.getcCompiler();
-
-          if (toolChain instanceof org.gradle.nativeplatform.toolchain.VisualCpp) {
-            org.gradle.nativeplatform.toolchain.VisualCpp vcpp = (org.gradle.nativeplatform.toolchain.VisualCpp) toolChain;
-            SearchResult<VisualStudioInstall> vsiSearch = ext._vsLocator.locateComponent(vcpp.getInstallDir());
-            if (vsiSearch.isAvailable()) {
-              VisualStudioInstall vsi = vsiSearch.getComponent();
-              VisualCpp vscpp = vsi.getVisualCpp().forPlatform((NativePlatformInternal) bin.getTargetPlatform());
-              tc.cppPath = vscpp.getCompilerExecutable().toString();
-              tc.cPath = vscpp.getCompilerExecutable().toString();
-              break;
-            }
-          }
-        }
-
-        for (GccPlatformToolChain gccPlat : ext._gccLikePlatforms) {
-          if (gccPlat.getPlatform().equals(bin.getTargetPlatform())) {
-            tc.msvc = false;
-            cppInternal = (CommandLineToolConfigurationInternal) gccPlat.getCppCompiler();
-            cInternal = (CommandLineToolConfigurationInternal) gccPlat.getcCompiler();
-            tc.cppPath = gccPlat.getCppCompiler().getExecutable();
-            tc.cPath = gccPlat.getcCompiler().getExecutable();
-
-            ToolSearchPath tsp = new ToolSearchPath(OperatingSystem.current());
-            CommandLineToolSearchResult cppSearch = tsp.locate(ToolType.CPP_COMPILER,
-                gccPlat.getCppCompiler().getExecutable());
-            if (cppSearch.isAvailable()) {
-              tc.cppPath = cppSearch.getTool().toString();
-            }
-            CommandLineToolSearchResult cSearch = tsp.locate(ToolType.C_COMPILER,
-                gccPlat.getcCompiler().getExecutable());
-            if (cSearch.isAvailable()) {
-              tc.cPath = cSearch.getTool().toString();
-            }
-            if (cppSearch.isAvailable() && cSearch.isAvailable()) {
-              break;
-            }
-          }
-        }
-      }
-
-      List<String> list = new ArrayList<>();
-      cppInternal.getArgAction().execute(list);
-
-      for (int i = 0; i < list.size(); i++) {
-        String trim = list.get(i).trim();
-        if (trim.startsWith("-D") || trim.startsWith("/D")) {
-          list.remove(i);
-        } else {
-          continue;
-        }
-        trim = trim.substring(2);
-        if (trim.contains("=")) {
-          String[] split = trim.split("=", 2);
-          tc.systemCppMacros.put(split[0], split[1]);
-        } else {
-          tc.systemCppMacros.put(trim, "");
-        }
-      }
-
-      tc.systemCppArgs.addAll(list);
-
-      list.clear();
-
-      cInternal.getArgAction().execute(list);
-
-      for (int i = 0; i < list.size(); i++) {
-        String trim = list.get(i).trim();
-        if (trim.startsWith("-D") || trim.startsWith("/D")) {
-          list.remove(i);
-        } else {
-          continue;
-        }
-        trim = trim.substring(2);
-        if (trim.contains("=")) {
-          String[] split = trim.split("=", 2);
-          tc.systemCMacros.put(split[0], split[1]);
-        } else {
-          tc.systemCMacros.put(trim, "");
-        }
-      }
-
-      tc.systemCArgs.addAll(list);
-
       boolean added = toolChains.add(tc);
       if (!added) {
         for (ToolChains tc2 : toolChains) {
@@ -270,6 +175,103 @@ public class VsCodeConfigurationTask extends DefaultTask {
             tc = tc2;
           }
         }
+      } else {
+
+        tc.name = ext.getNameForConfiguration(tc.architecture, tc.operatingSystem, tc.flavor, tc.buildType);
+
+        CommandLineToolConfigurationInternal cppInternal = null;
+        CommandLineToolConfigurationInternal cInternal = null;
+
+        NativeToolChain toolChain = bin.getToolChain();
+
+        for (VisualCppPlatformToolChain msvcPlat : ext._visualCppPlatforms) {
+          if (msvcPlat.getPlatform().equals(bin.getTargetPlatform())) {
+            tc.msvc = true;
+            cppInternal = (CommandLineToolConfigurationInternal) msvcPlat.getCppCompiler();
+            cInternal = (CommandLineToolConfigurationInternal) msvcPlat.getcCompiler();
+
+            if (toolChain instanceof org.gradle.nativeplatform.toolchain.VisualCpp) {
+              org.gradle.nativeplatform.toolchain.VisualCpp vcpp = (org.gradle.nativeplatform.toolchain.VisualCpp) toolChain;
+              SearchResult<VisualStudioInstall> vsiSearch = ext._vsLocator.locateComponent(vcpp.getInstallDir());
+              if (vsiSearch.isAvailable()) {
+                VisualStudioInstall vsi = vsiSearch.getComponent();
+                VisualCpp vscpp = vsi.getVisualCpp().forPlatform((NativePlatformInternal) bin.getTargetPlatform());
+                tc.cppPath = vscpp.getCompilerExecutable().toString();
+                tc.cPath = vscpp.getCompilerExecutable().toString();
+                break;
+              }
+            }
+          }
+
+          for (GccPlatformToolChain gccPlat : ext._gccLikePlatforms) {
+            if (gccPlat.getPlatform().equals(bin.getTargetPlatform())) {
+              tc.msvc = false;
+              cppInternal = (CommandLineToolConfigurationInternal) gccPlat.getCppCompiler();
+              cInternal = (CommandLineToolConfigurationInternal) gccPlat.getcCompiler();
+              tc.cppPath = gccPlat.getCppCompiler().getExecutable();
+              tc.cPath = gccPlat.getcCompiler().getExecutable();
+
+              ToolSearchPath tsp = new ToolSearchPath(OperatingSystem.current());
+              CommandLineToolSearchResult cppSearch = tsp.locate(ToolType.CPP_COMPILER,
+                  gccPlat.getCppCompiler().getExecutable());
+              if (cppSearch.isAvailable()) {
+                tc.cppPath = cppSearch.getTool().toString();
+              }
+              CommandLineToolSearchResult cSearch = tsp.locate(ToolType.C_COMPILER,
+                  gccPlat.getcCompiler().getExecutable());
+              if (cSearch.isAvailable()) {
+                tc.cPath = cSearch.getTool().toString();
+              }
+              if (cppSearch.isAvailable() && cSearch.isAvailable()) {
+                break;
+              }
+            }
+          }
+        }
+
+        List<String> list = new ArrayList<>();
+        cppInternal.getArgAction().execute(list);
+
+        for (int i = 0; i < list.size(); i++) {
+          String trim = list.get(i).trim();
+          if (trim.startsWith("-D") || trim.startsWith("/D")) {
+            list.remove(i);
+          } else {
+            continue;
+          }
+          trim = trim.substring(2);
+          if (trim.contains("=")) {
+            String[] split = trim.split("=", 2);
+            tc.systemCppMacros.put(split[0], split[1]);
+          } else {
+            tc.systemCppMacros.put(trim, "");
+          }
+        }
+
+        tc.systemCppArgs.addAll(list);
+
+        list.clear();
+
+        cInternal.getArgAction().execute(list);
+
+        for (int i = 0; i < list.size(); i++) {
+          String trim = list.get(i).trim();
+          if (trim.startsWith("-D") || trim.startsWith("/D")) {
+            list.remove(i);
+          } else {
+            continue;
+          }
+          trim = trim.substring(2);
+          if (trim.contains("=")) {
+            String[] split = trim.split("=", 2);
+            tc.systemCMacros.put(split[0], split[1]);
+          } else {
+            tc.systemCMacros.put(trim, "");
+          }
+        }
+
+        tc.systemCArgs.addAll(list);
+
       }
 
       tc.binaries.add(bo);
@@ -278,7 +280,9 @@ public class VsCodeConfigurationTask extends DefaultTask {
 
     GsonBuilder builder = new GsonBuilder();
 
-    builder.setPrettyPrinting();
+    if (ext.getPrettyPrinting()) {
+      builder.setPrettyPrinting();
+    }
 
     String json = builder.create().toJson(toolChains);
 
