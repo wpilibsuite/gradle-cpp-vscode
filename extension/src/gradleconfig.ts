@@ -333,6 +333,7 @@ export class GradleConfig {
       this.selectedName.Value = result;
       this.statusBar.text = result;
     }
+    this.refreshEvent.fire();
   }
 
   public dispose() {
