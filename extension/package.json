@@ -1,6 +1,6 @@
 {
-    "name": "gradle-vscode-cpp",
-    "displayName": "gradle-vscode-cpp",
+    "name": "gradle-cpp-vscode",
+    "displayName": "gradle-cpp-vscode",
     "description": "Support for gradle C++ projects in vscode",
     "version": "0.0.1",
     "publisher": "wpifirst",
