@@ -22,15 +22,22 @@
     ],
     "main": "./out/extension",
     "contributes": {
+        "configuration": {
+            "type": "object",
+            "title": "Gradle C++ configuration",
+            "properties": {
+                "gradlecpp.runConfigurationOnline": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Run Gradle configuration online rather then offline",
+                    "scope": "resource"
+                }
+            }
+        },
         "commands": [
             {
                 "command": "gradlevscpp.refreshProperties",
                 "title": "Refresh Gradle C++ Properties",
-                "category": "Gradle C++"
-            },
-            {
-                "command": "gradlevscpp.refreshPropertiesOnline",
-                "title": "Refresh Gradle C++ Properties Online",
                 "category": "Gradle C++"
             },
             {

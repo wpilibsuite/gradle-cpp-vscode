@@ -37,12 +37,12 @@ function hasDriveLetter(pth: string): boolean {
   return isWindows && pth[1] === ':';
 }
 
-export function normalizeDriveLetter(path: string): string {
-  if (hasDriveLetter(path)) {
-    return path.charAt(0).toUpperCase() + path.slice(1);
+export function normalizeDriveLetter(pth: string): string {
+  if (hasDriveLetter(pth)) {
+    return pth.charAt(0).toUpperCase() + pth.slice(1);
   }
 
-  return path;
+  return pth;
 }
 
 
@@ -151,10 +151,15 @@ export class GradleConfig {
     return promises;
   }
 
-  public async runGradleRefresh(online: boolean = false): Promise<number> {
+  private getConfiguration(): vscode.WorkspaceConfiguration {
+    return vscode.workspace.getConfiguration('gradlecpp', this.workspace.uri);
+  }
+
+  public async runGradleRefresh(): Promise<number> {
+    const online = this.getConfiguration().get<boolean>('runConfigurationOnline');
     const runner = new TaskRunner();
     let command = './gradlew generateVsCodeConfig';
-    if (!online) {
+    if (online === undefined || online === false) {
       command += ' --offline';
     }
     return runner.executeTask(command, 'gradle', this.workspace.uri.fsPath, this.workspace);
@@ -281,17 +286,17 @@ export class GradleConfig {
 
     const newToolchains: ToolChain[] = jsonc.parse(file);
     for (const newToolChain of newToolchains) {
-      let found = false;
+      let foundTc = false;
       for (const existingChain of this.toolchains) {
         if (newToolChain.architecture === existingChain.architecture &&
           newToolChain.operatingSystem === existingChain.operatingSystem &&
           newToolChain.flavor === existingChain.flavor &&
           newToolChain.buildType === existingChain.buildType) {
-          found = true;
+          foundTc = true;
           existingChain.binaries.push(...newToolChain.binaries);
         }
       }
-      if (!found) {
+      if (!foundTc) {
         this.toolchains.push(newToolChain);
       }
     }
@@ -326,8 +331,8 @@ export class GradleConfig {
       selections.push(c.name);
     }
     if (selections.length === 0) {
-      const result = await vscode.window.showInformationMessage('No configuration. Would you line to refresh the configurations?', 'Yes', 'No');
-      if (result === 'Yes') {
+      const configResult = await vscode.window.showInformationMessage('No configuration. Would you line to refresh the configurations?', 'Yes', 'No');
+      if (configResult === 'Yes') {
         await this.runGradleRefresh();
       }
       return;

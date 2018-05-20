@@ -1,8 +1,8 @@
 'use-strict';
 
-import { CustomConfigurationProvider, SourceFileConfigurationItem, SourceFileConfiguration, CppToolsApi } from "./cppapi";
-import * as vscode from "vscode";
-import { GradleConfig, BinaryFind } from "./gradleconfig";
+import { CustomConfigurationProvider, SourceFileConfigurationItem, SourceFileConfiguration, CppToolsApi } from './cppapi';
+import * as vscode from 'vscode';
+import { GradleConfig, BinaryFind } from './gradleconfig';
 
 function parseLanguage(_: string[], isCpp: boolean): string {
   if (!isCpp) {
@@ -76,8 +76,8 @@ export class ApiProvider implements CustomConfigurationProvider {
     return this.gradleConfig.selectToolChain();
   }
 
-  public runGradleRefresh(online: boolean = false): Promise<number> {
-    return this.gradleConfig.runGradleRefresh(online);
+  public runGradleRefresh(): Promise<number> {
+    return this.gradleConfig.runGradleRefresh();
   }
 
   public dispose() {
