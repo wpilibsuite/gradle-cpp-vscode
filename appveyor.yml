@@ -15,11 +15,19 @@ install:
     npm install vsce -g
 
 
-    ./gradlew clean --no-daemon
+    If (Test-Path Env:APPVEYOR_REPO_TAG_NAME) {
+        ./gradlew clean -PjenkinsBuild -PreleaseType=OFFICIAL --continue --no-daemon
+    } Else {
+        ./gradlew clean -PjenkinsBuild --continue --no-daemon
+    }
 cache: C:\Users\appveyor\.gradle
 build_script:
 - ps: >-
-    ./gradlew build updateVersions --continue --no-daemon
+    If (Test-Path Env:APPVEYOR_REPO_TAG_NAME) {
+        ./gradlew build updateVersions -PjenkinsBuild -PreleaseType=OFFICIAL --continue --no-daemon
+    } Else {
+        ./gradlew build updateVersions -PjenkinsBuild --continue --no-daemon
+    }
 
     if ($lastexitcode -ne 0) {
         throw ("Exec: " + $errorMessage)
@@ -40,3 +48,10 @@ artifacts:
   name: Jars
 - path: '**/*.vsix'
   name: VSIX
+deploy:
+- provider: GitHub
+  auth_token:
+    secure: jecQI2sLa3l2Ubgls0IS5xeqCezIqisLyC4y8VSm7JZzXM7r+wWc7Fs7aoCQJ51G
+  artifact: /.*\.*/
+  on:
+    appveyor_repo_tag: true
