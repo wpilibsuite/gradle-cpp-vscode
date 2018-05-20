@@ -10,6 +10,8 @@
     "categories": [
         "Other"
     ],
+    "license": "BSD-3-Clause",
+    "repository": "https://github.com/wpilibsuite/gradle-cpp-vscode",
     "enableProposedApi": true,
     "activationEvents": [
         "onCommand:gradlevscpp.refreshProperties",
