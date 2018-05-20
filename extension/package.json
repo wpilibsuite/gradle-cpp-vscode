@@ -27,6 +27,11 @@
                 "category": "Gradle C++"
             },
             {
+                "command": "gradlevscpp.refreshPropertiesOnline",
+                "title": "Refresh Gradle C++ Properties Online",
+                "category": "Gradle C++"
+            },
+            {
                 "command": "gradlevscpp.selectToolchain",
                 "title": "Select Current C++ Toolchain",
                 "category": "Gradle C++"

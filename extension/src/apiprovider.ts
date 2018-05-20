@@ -75,8 +75,8 @@ export class ApiProvider implements CustomConfigurationProvider {
     return this.gradleConfig.selectToolChain();
   }
 
-  public runGradleRefresh(): Promise<number> {
-    return this.gradleConfig.runGradleRefresh();
+  public runGradleRefresh(online: boolean = false): Promise<number> {
+    return this.gradleConfig.runGradleRefresh(online);
   }
 
   public dispose() {

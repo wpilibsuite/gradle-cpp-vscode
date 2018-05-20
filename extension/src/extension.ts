@@ -97,6 +97,25 @@ export async function activate(context: vscode.ExtensionContext) {
         }
     });
 
+    context.subscriptions.push(vscode.commands.registerCommand('gradlevscpp.refreshProperties', async () => {
+
+
+        const workspaces = vscode.workspace.workspaceFolders;
+
+        if (workspaces === undefined) {
+            return;
+        }
+
+        for (const wp of workspaces) {
+            for (const loader of configLoaders) {
+                if (wp.uri.fsPath === loader.workspace.uri.fsPath) {
+                    await loader.runGradleRefresh(true);
+                    await loader.loadConfigs();
+                }
+            }
+        }
+    }));
+
 
     context.subscriptions.push(disposable);
 }

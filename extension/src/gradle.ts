@@ -23,7 +23,7 @@ export class TaskRunner {
     const shell = new vscode.ShellExecution(command, {
       cwd: rootDir
     });
-    const task = new vscode.Task({ type: 'wpilibgradle' }, workspace, name, 'wpilib', shell);
+    const task = new vscode.Task({ type: 'gradlecpp' }, workspace, name, 'vscodecpp', shell);
     const runningTask = await vscode.tasks.executeTask(task);
     this.execution = runningTask;
     this.condition.reset(-1);

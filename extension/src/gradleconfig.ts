@@ -45,6 +45,8 @@ export function normalizeDriveLetter(path: string): string {
   return path;
 }
 
+
+
 export class GradleConfig {
   public workspace: vscode.WorkspaceFolder;
   private toolchains: ToolChain[] = [];
@@ -149,9 +151,12 @@ export class GradleConfig {
     return promises;
   }
 
-  public async runGradleRefresh(): Promise<number> {
+  public async runGradleRefresh(online: boolean = false): Promise<number> {
     const runner = new TaskRunner();
-    const command = './gradlew generateVsCodeConfig --offline';
+    let command = './gradlew generateVsCodeConfig';
+    if (!online) {
+      command += ' --offline';
+    }
     return runner.executeTask(command, 'gradle', this.workspace.uri.fsPath, this.workspace);
   }
 
