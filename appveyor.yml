@@ -19,7 +19,7 @@ install:
 cache: C:\Users\appveyor\.gradle
 build_script:
 - ps: >-
-    ./gradlew build --continue --no-daemon
+    ./gradlew build updateVersions --continue --no-daemon
 
     if ($lastexitcode -ne 0) {
         throw ("Exec: " + $errorMessage)
