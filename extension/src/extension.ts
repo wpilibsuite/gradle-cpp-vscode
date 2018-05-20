@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 //import { GradleConfig } from './gradleconfig';
 import { setExtensionContext } from './persistentState';
 import { ApiProvider } from './apiprovider';
-import { CppToolsApi, CustomConfigurationProvider } from './cppapi';
+import { CppToolsApi } from './cppapi';
 
 /*
 class ShimTools implements CppToolsApi {

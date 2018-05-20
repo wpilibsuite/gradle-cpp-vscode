@@ -83,17 +83,17 @@ export class GradleConfig {
 
     this.disposables.push(this.statusBar);
 
-    this.configWatcher.onDidCreate(async e => {
+    this.configWatcher.onDidCreate(async _ => {
       await this.loadConfigs();
     }, this.disposables);
 
-    this.configWatcher.onDidDelete(e => {
+    this.configWatcher.onDidDelete(_ => {
       this.statusBar.text = 'none';
       this.toolchains = [];
       this.foundFiles = [];
     }, this.disposables);
 
-    this.configWatcher.onDidChange(async e => {
+    this.configWatcher.onDidChange(async _ => {
       await this.loadConfigs();
     }, this.disposables);
   }
