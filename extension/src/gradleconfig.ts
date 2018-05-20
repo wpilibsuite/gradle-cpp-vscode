@@ -57,7 +57,7 @@ export class GradleConfig {
 
   private statusBar: vscode.StatusBarItem;
 
-  private readonly configFileGlob: string = '**/vscodeconfig.json';
+  private readonly configFile: string = 'vscodeconfig.json';
 
   private configRelativePattern: vscode.RelativePattern;
   private configWatcher: vscode.FileSystemWatcher;
@@ -66,7 +66,7 @@ export class GradleConfig {
   constructor(workspace: vscode.WorkspaceFolder) {
     this.workspace = workspace;
 
-    this.configRelativePattern = new vscode.RelativePattern(path.join(workspace.uri.fsPath, 'build'), this.configFileGlob);
+    this.configRelativePattern = new vscode.RelativePattern(path.join(workspace.uri.fsPath, 'build'), this.configFile);
 
     this.refreshEvent = new vscode.EventEmitter();
 
@@ -269,40 +269,34 @@ export class GradleConfig {
   }
 
   public async loadConfigs(): Promise<void> {
-    const files = await vscode.workspace.findFiles(this.configFileGlob, path.join(this.workspace.uri.fsPath, 'build'));
-    if (files.length === 0) {
+    this.toolchains = [];
+
+    let file = '';
+    try {
+      file = await promisifyReadFile(path.join(this.workspace.uri.fsPath, 'build', this.configFile));
+    } catch (err) {
       this.statusBar.show();
       return;
     }
 
-    const promiseArray: Promise<string>[] = [];
-    for (const file of files) {
-      promiseArray.push(promisifyReadFile(file.fsPath));
-    }
-    const readFiles: string[] = await Promise.all(promiseArray);
-
-    this.toolchains = [];
-
-    for (const file of readFiles) {
-      const newToolchains: ToolChain[] = jsonc.parse(file);
-      for (const newToolChain of newToolchains) {
-        let found = false;
-        for (const existingChain of this.toolchains) {
-          if (newToolChain.architecture === existingChain.architecture &&
-            newToolChain.operatingSystem === existingChain.operatingSystem &&
-            newToolChain.flavor === existingChain.flavor &&
-            newToolChain.buildType === existingChain.buildType) {
-            found = true;
-            existingChain.binaries.push(...newToolChain.binaries);
-          }
-        }
-        if (!found) {
-          this.toolchains.push(newToolChain);
+    const newToolchains: ToolChain[] = jsonc.parse(file);
+    for (const newToolChain of newToolchains) {
+      let found = false;
+      for (const existingChain of this.toolchains) {
+        if (newToolChain.architecture === existingChain.architecture &&
+          newToolChain.operatingSystem === existingChain.operatingSystem &&
+          newToolChain.flavor === existingChain.flavor &&
+          newToolChain.buildType === existingChain.buildType) {
+          found = true;
+          existingChain.binaries.push(...newToolChain.binaries);
         }
       }
-
-      this.refreshEvent.fire();
+      if (!found) {
+        this.toolchains.push(newToolChain);
+      }
     }
+
+    this.refreshEvent.fire();
 
     if (this.selectedName.Value === 'none') {
       this.selectedName.Value = this.toolchains[0].name;

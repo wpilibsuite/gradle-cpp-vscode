@@ -64,6 +64,7 @@ export class ApiProvider implements CustomConfigurationProvider {
         configuration: getSourceFileConfiguration(b)
       });
     }
+    console.log(JSON.stringify(ret, null, 4));
     return ret;
   }
 

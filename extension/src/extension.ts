@@ -7,6 +7,7 @@ import { setExtensionContext } from './persistentState';
 import { ApiProvider } from './apiprovider';
 import { CppToolsApi, CustomConfigurationProvider } from './cppapi';
 
+/*
 class ShimTools implements CppToolsApi {
     public providers: CustomConfigurationProvider[] = [];
 
@@ -17,11 +18,12 @@ class ShimTools implements CppToolsApi {
         // noop
     }
 }
+*/
 
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
 
     // Use the console to output diagnostic information (console.log) and errors (console.error)
     // This line of code will only be executed once when your extension is activated
@@ -31,7 +33,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
     const workspaces = vscode.workspace.workspaceFolders;
 
-    const cppToolsApi: ShimTools = new ShimTools();
+    const vsCppExt = vscode.extensions.getExtension<CppToolsApi>('ms-vscode.cpptools');
+    if (vsCppExt === undefined) {
+        console.log('failure todo');
+        return;
+    }
+
+
+    const cppToolsApi: CppToolsApi = await vsCppExt.activate();
 
     const outputChannel: vscode.OutputChannel = vscode.window.createOutputChannel('Gradle VsCode');
     context.subscriptions.push(outputChannel);
@@ -46,6 +55,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }
 
 
+    /*
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(async e => {
         if (e === undefined) {
             return;
@@ -58,6 +68,7 @@ export async function activate(context: vscode.ExtensionContext) {
             }
         }
     }));
+    */
 
     context.subscriptions.push(vscode.commands.registerCommand('gradlevscpp.selectToolchain', async () => {
         const workspaces = vscode.workspace.workspaceFolders;
@@ -97,7 +108,7 @@ export async function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    context.subscriptions.push(vscode.commands.registerCommand('gradlevscpp.refreshProperties', async () => {
+    context.subscriptions.push(vscode.commands.registerCommand('gradlevscpp.refreshPropertiesOnline', async () => {
 
 
         const workspaces = vscode.workspace.workspaceFolders;
