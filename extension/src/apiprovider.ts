@@ -4,7 +4,7 @@ import { CustomConfigurationProvider, SourceFileConfigurationItem, SourceFileCon
 import * as vscode from "vscode";
 import { GradleConfig, BinaryFind } from "./gradleconfig";
 
-function parseLanguage(args: string[], isCpp: boolean): string {
+function parseLanguage(_: string[], isCpp: boolean): string {
   if (!isCpp) {
     return 'c11';
   }
@@ -47,7 +47,7 @@ export class ApiProvider implements CustomConfigurationProvider {
 
   public name: string = 'wpilib';
 
-  public async canProvideConfiguration(uri: vscode.Uri, token?: vscode.CancellationToken | undefined): Promise<boolean> {
+  public async canProvideConfiguration(uri: vscode.Uri, _?: vscode.CancellationToken | undefined): Promise<boolean> {
     const fileWp = vscode.workspace.getWorkspaceFolder(uri);
     if (fileWp === undefined || fileWp.index !== this.workspace.index) {
       return false;
@@ -55,7 +55,7 @@ export class ApiProvider implements CustomConfigurationProvider {
     const bins = await this.gradleConfig.findMatchingBinary([uri]);
     return bins.length !== 0;
   }
-  public async provideConfigurations(uris: vscode.Uri[], token?: vscode.CancellationToken | undefined): Promise<SourceFileConfigurationItem[]> {
+  public async provideConfigurations(uris: vscode.Uri[], _?: vscode.CancellationToken | undefined): Promise<SourceFileConfigurationItem[]> {
     const bins = await this.gradleConfig.findMatchingBinary(uris);
     const ret: SourceFileConfigurationItem[] = [];
     for (const b of bins) {
