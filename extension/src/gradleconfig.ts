@@ -7,6 +7,7 @@ import { ToolChain, Source } from './jsonformats';
 import * as path from 'path';
 import * as glob from 'glob';
 import { PersistentFolderState } from './persistentState';
+import { TaskRunner } from './gradle';
 
 function promisifyReadFile(location: string): Promise<string> {
   return new Promise<string>((resolve, reject) => {
@@ -54,18 +55,16 @@ export class GradleConfig {
 
   private statusBar: vscode.StatusBarItem;
 
-  private readonly configFileGlob: string = '**/build/vscodeconfig.json';
+  private readonly configFileGlob: string = '**/vscodeconfig.json';
 
   private configRelativePattern: vscode.RelativePattern;
   private configWatcher: vscode.FileSystemWatcher;
-  private outputChannel: vscode.OutputChannel;
   public refreshEvent: vscode.EventEmitter<void>;
 
-  constructor(workspace: vscode.WorkspaceFolder, outputChannel: vscode.OutputChannel) {
+  constructor(workspace: vscode.WorkspaceFolder) {
     this.workspace = workspace;
-    this.outputChannel = outputChannel;
 
-    this.configRelativePattern = new vscode.RelativePattern(workspace, this.configFileGlob);
+    this.configRelativePattern = new vscode.RelativePattern(path.join(workspace.uri.fsPath, 'build'), this.configFileGlob);
 
     this.refreshEvent = new vscode.EventEmitter();
 
@@ -79,8 +78,6 @@ export class GradleConfig {
     this.statusBar.text = this.selectedName.Value;
     this.statusBar.tooltip = 'Click to change toolchain';
     this.statusBar.command = 'gradlevscpp.selectToolchain';
-
-
 
     this.disposables.push(this.statusBar);
 
@@ -152,8 +149,10 @@ export class GradleConfig {
     return promises;
   }
 
-  public async runGradleRefresh(): Promise<void> {
-    this.outputChannel.show();
+  public async runGradleRefresh(): Promise<number> {
+    const runner = new TaskRunner();
+    const command = './gradlew generateVsCodeConfig --offline';
+    return runner.executeTask(command, 'gradle', this.workspace.uri.fsPath, this.workspace);
   }
 
   public async findMatchingBinary(uris: vscode.Uri[]): Promise<BinaryFind[]> {
@@ -266,6 +265,11 @@ export class GradleConfig {
 
   public async loadConfigs(): Promise<void> {
     const files = await vscode.workspace.findFiles(this.configFileGlob, path.join(this.workspace.uri.fsPath, 'build'));
+    if (files.length === 0) {
+      this.statusBar.show();
+      return;
+    }
+
     const promiseArray: Promise<string>[] = [];
     for (const file of files) {
       promiseArray.push(promisifyReadFile(file.fsPath));
@@ -323,7 +327,10 @@ export class GradleConfig {
       selections.push(c.name);
     }
     if (selections.length === 0) {
-      vscode.window.showInformationMessage('No configuration. Try refreshing the configurations');
+      const result = await vscode.window.showInformationMessage('No configuration. Would you line to refresh the configurations?', 'Yes', 'No');
+      if (result === 'Yes') {
+        await this.runGradleRefresh();
+      }
       return;
     }
     const result = await vscode.window.showQuickPick(selections, {

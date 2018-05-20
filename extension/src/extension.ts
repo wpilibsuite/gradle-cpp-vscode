@@ -37,17 +37,13 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(outputChannel);
 
     let configLoaders: ApiProvider[] = [];
-    let promises: Promise<void>[] = [];
 
     if (workspaces !== undefined) {
         for (const wp of workspaces) {
-            const configLoader = new ApiProvider(wp, outputChannel, cppToolsApi);
+            const configLoader = new ApiProvider(wp, cppToolsApi);
             configLoaders.push(configLoader);
-            promises.push(configLoader.loadConfigs());
         }
     }
-
-
 
 
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(async e => {
@@ -62,9 +58,6 @@ export async function activate(context: vscode.ExtensionContext) {
             }
         }
     }));
-
-
-    await Promise.all(promises);
 
     context.subscriptions.push(vscode.commands.registerCommand('gradlevscpp.selectToolchain', async () => {
         const workspaces = vscode.workspace.workspaceFolders;
@@ -86,7 +79,7 @@ export async function activate(context: vscode.ExtensionContext) {
     // Now provide the implementation of the command with  registerCommand
     // The commandId parameter must match the command field in package.json
     let disposable = vscode.commands.registerCommand('gradlevscpp.refreshProperties', async () => {
-        // The code you place here will be executed every time your command is executed
+
 
         const workspaces = vscode.workspace.workspaceFolders;
 

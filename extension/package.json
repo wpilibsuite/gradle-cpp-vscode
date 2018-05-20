@@ -10,8 +10,10 @@
     "categories": [
         "Other"
     ],
+    "enableProposedApi": true,
     "activationEvents": [
         "onCommand:gradlevscpp.refreshProperties",
+        "onCommand:gradlevscpp.selectToolchain",
         "onLanguage:c",
         "onLanguage:cpp",
         "workspaceContains:**/vscodeconfig.json"

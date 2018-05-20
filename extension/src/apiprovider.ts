@@ -32,12 +32,12 @@ export class ApiProvider implements CustomConfigurationProvider {
   private disposables: vscode.Disposable[] = [];
   private cppToolsApi: CppToolsApi;
 
-  constructor(workspace: vscode.WorkspaceFolder, outputChannel: vscode.OutputChannel, cppToolsApi: CppToolsApi) {
+  constructor(workspace: vscode.WorkspaceFolder, cppToolsApi: CppToolsApi) {
     this.workspace = workspace;
-    this.gradleConfig = new GradleConfig(workspace, outputChannel);
+    this.gradleConfig = new GradleConfig(workspace);
     this.disposables.push(this.gradleConfig);
     this.cppToolsApi = cppToolsApi;
-    this.gradleConfig.loadConfigs().then(x => {
+    this.gradleConfig.loadConfigs().then(() => {
       this.cppToolsApi.registerCustomConfigurationProvider(this);
       this.gradleConfig.refreshEvent.event(() => {
         this.cppToolsApi.didChangeCustomConfiguration(this);
@@ -75,7 +75,7 @@ export class ApiProvider implements CustomConfigurationProvider {
     return this.gradleConfig.selectToolChain();
   }
 
-  public runGradleRefresh(): Promise<void> {
+  public runGradleRefresh(): Promise<number> {
     return this.gradleConfig.runGradleRefresh();
   }
 
