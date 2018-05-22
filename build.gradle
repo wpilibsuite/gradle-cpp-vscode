@@ -57,10 +57,10 @@ publishing {
 }
 
 pluginBundle {
-    website = 'https://github.com/wpilibsuite/gradle-jni'
-    vcsUrl = 'https://github.com/wpilibsuite/gradle-jni'
+    website = 'https://github.com/wpilibsuite/gradle-cpp-vscode'
+    vcsUrl = 'https://github.com/wpilibsuite/gradle-cpp-vscode'
     description = 'This plugin provides easy to use JNI support for gradle.'
-    tags = ['groovy', 'jni', 'utils', 'maven', 'frc', 'wpilib']
+    tags = ['groovy', 'vscode', 'cpp', 'maven', 'frc', 'wpilib']
 
     plugins {
         GradleVsCode {
@@ -78,8 +78,6 @@ gradlePlugin {
         }
     }
 }
-
-apply from: 'versions.gradle'
 
 task wrapper(type: Wrapper) {
     gradleVersion = '4.7'

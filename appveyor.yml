@@ -24,9 +24,9 @@ cache: C:\Users\appveyor\.gradle
 build_script:
 - ps: >-
     If (Test-Path Env:APPVEYOR_REPO_TAG_NAME) {
-        ./gradlew build updateVersions -PjenkinsBuild -PreleaseType=OFFICIAL --continue --no-daemon
+        ./gradlew build -PjenkinsBuild -PreleaseType=OFFICIAL --continue --no-daemon
     } Else {
-        ./gradlew build updateVersions -PjenkinsBuild --continue --no-daemon
+        ./gradlew build -PjenkinsBuild --continue --no-daemon
     }
 
     if ($lastexitcode -ne 0) {
@@ -46,8 +46,6 @@ test: off
 artifacts:
 - path: '**/libs/*'
   name: Jars
-- path: '**/*.vsix'
-  name: VSIX
 deploy:
 - provider: GitHub
   auth_token:
