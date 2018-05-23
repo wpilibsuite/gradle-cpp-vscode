@@ -6,15 +6,8 @@ branches:
   - master
 skip_branch_with_pr: true
 image: Visual Studio 2017
-init:
-- ps: Install-Product node $env:nodejs_version
-environment:
-  nodejs_version: 8
 install:
 - ps: >-
-    npm install vsce -g
-
-
     If (Test-Path Env:APPVEYOR_REPO_TAG_NAME) {
         ./gradlew clean -PjenkinsBuild -PreleaseType=OFFICIAL --continue --no-daemon
     } Else {
@@ -33,15 +26,6 @@ build_script:
         throw ("Exec: " + $errorMessage)
     }
 
-    cd extension
-
-    npm install
-
-    vsce package
-
-    if ($lastexitcode -eq 0) {
-        echo $lastexitcode
-    }
 test: off
 artifacts:
 - path: '**/libs/*'
