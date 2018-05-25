@@ -24,6 +24,10 @@ if (pubVersion == '') {
     pubVersion = '0.0.1-unknown'
 }
 
+if (project.hasProperty('myVar')) {
+    println myVar
+}
+
 group 'edu.wpi.first'
 version pubVersion
 
