@@ -44,8 +44,5 @@ deploy:
 deploy_script:
 - cmd: >-
 
-    echo %APPVEYOR_REPO_BRANCH%
+    if %APPVEYOR_REPO_TAG% equ true if %APPVEYOR_REPO_BRANCH% equ master gradlew.bat tasks -PmyVar=%my_variable%
 
-  on:
-    branch: master
-    appveyor_repo_tag: true
