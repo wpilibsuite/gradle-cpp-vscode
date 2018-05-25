@@ -37,3 +37,6 @@ deploy:
   artifact: /.*\.*/
   on:
     appveyor_repo_tag: true
+deploy_script:
+- ps: >-
+    ./gradlew tasks --no-daemon
