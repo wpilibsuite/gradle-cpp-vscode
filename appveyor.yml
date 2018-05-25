@@ -42,7 +42,7 @@ deploy:
     appveyor_repo_tag: true
 deploy_script:
 - ps: >-
-    ./gradlew tasks --no-daemon
+    ./gradlew tasks --no-daemon -P$env:my_variable
 
   on:
     appveyor_repo_tag: true
