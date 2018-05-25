@@ -43,9 +43,8 @@ deploy:
     appveyor_repo_tag: true
 deploy_script:
 - cmd: >-
-    echo %MY_VARIABLE%
 
-    gradlew.bat tasks --no-daemon -PmyVar=%MY_VARIABLE%
+    echo %APPVEYOR_REPO_BRANCH%
 
   on:
     branch: master
