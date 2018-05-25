@@ -42,9 +42,10 @@ deploy:
     branch: master
     appveyor_repo_tag: true
 deploy_script:
-- ps: >-
-    echo Get-ChildItem env:my_variable
-    ./gradlew tasks --no-daemon -PmyVar= $env:my_variable
+- cmd: >-
+    echo %MY_VARIABLE%
+
+    gradlew.bat tasks --no-daemon -PmyVar=%MY_VARIABLE%
 
   on:
     branch: master
