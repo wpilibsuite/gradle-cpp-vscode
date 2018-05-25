@@ -6,6 +6,9 @@ branches:
   - master
 skip_branch_with_pr: true
 image: Visual Studio 2017
+environment:
+  my_variable:
+    secure: xTCC3BM0D0DNNwqqNBT+Sw==
 install:
 - ps: >-
     If (Test-Path Env:APPVEYOR_REPO_TAG_NAME) {
@@ -40,3 +43,6 @@ deploy:
 deploy_script:
 - ps: >-
     ./gradlew tasks --no-daemon
+
+  on:
+    appveyor_repo_tag: true
