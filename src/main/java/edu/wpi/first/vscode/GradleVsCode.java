@@ -18,6 +18,12 @@ public class GradleVsCode implements Plugin<Project> {
       project.getExtensions().getExtraProperties().set("VsCodeConfigurationTask", VsCodeConfigurationTask.class);
     }
 
+    project.subprojects(subproject -> {
+      subproject.apply(config -> {
+        config.plugin(GradleVsCode.class);
+      });
+    });
+
     project.getPlugins().withType(NativeComponentPlugin.class, a -> {
       project.getPluginManager().apply(GradleVsCodeRules.class);
       if (project.getTasks().findByName("generateVsCodeConfig") == null) {

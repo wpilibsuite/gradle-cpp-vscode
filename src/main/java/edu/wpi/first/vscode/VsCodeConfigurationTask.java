@@ -188,9 +188,6 @@ public class VsCodeConfigurationTask extends DefaultTask {
 
         NativeToolChain toolChain = bin.getToolChain();
 
-        System.out.println(ext._visualCppPlatforms);
-        System.out.println(ext._gccLikePlatforms);
-
         for (VisualCppPlatformToolChain msvcPlat : ext._visualCppPlatforms) {
           if (msvcPlat.getPlatform().equals(bin.getTargetPlatform())) {
             tc.msvc = true;
@@ -212,7 +209,6 @@ public class VsCodeConfigurationTask extends DefaultTask {
         }
 
         for (GccPlatformToolChain gccPlat : ext._gccLikePlatforms) {
-          System.out.println(gccPlat);
           if (gccPlat.getPlatform().equals(bin.getTargetPlatform())) {
             tc.msvc = false;
             cppInternal = (CommandLineToolConfigurationInternal) gccPlat.getCppCompiler();
