@@ -3,8 +3,11 @@ package edu.wpi.first.vscode;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +17,7 @@ import java.util.Set;
 import com.google.gson.GsonBuilder;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -73,6 +77,8 @@ public class VsCodeConfigurationTask extends DefaultTask {
     public Set<String> systemCMacros = new HashSet<>();
     public Set<String> systemCArgs = new HashSet<>();
 
+    public Set<String> allLibFiles = new HashSet<>();
+
     public List<BinaryObject> binaries = new ArrayList<>();
 
     @Override
@@ -102,6 +108,8 @@ public class VsCodeConfigurationTask extends DefaultTask {
   public void generate() {
     Set<ToolChains> toolChains = new HashSet<>();
 
+    Map<Class<? extends NativeDependencySet>, Method> depClasses = new HashMap<>();
+
     VsCodeConfigurationExtension ext = getProject().getExtensions().getByType(VsCodeConfigurationExtension.class);
 
     for (NativeBinarySpec bin : ext._binaries) {
@@ -110,6 +118,8 @@ public class VsCodeConfigurationTask extends DefaultTask {
       }
 
       BinaryObject bo = new BinaryObject();
+
+      Set<String> libSources = new HashSet<>();
 
       for (LanguageSourceSet sSet : bin.getInputs()) {
         if (sSet instanceof HeaderExportingSourceSet) {
@@ -159,6 +169,30 @@ public class VsCodeConfigurationTask extends DefaultTask {
       for (NativeDependencySet dep : bin.getLibs()) {
         for (File f : dep.getIncludeRoots()) {
           bo.libHeaders.add(f.toString());
+        }
+        Class<? extends NativeDependencySet> cls = dep.getClass();
+        Method sourceMethod = null;
+        if (depClasses.containsKey(cls)) {
+          sourceMethod = depClasses.get(cls);
+        } else {
+          try {
+            sourceMethod = cls.getDeclaredMethod("getSourceFiles");
+          } catch (NoSuchMethodException | SecurityException e) {
+            sourceMethod = null;
+          }
+          depClasses.put(cls, sourceMethod);
+        }
+        if (sourceMethod != null) {
+          try {
+            Object rootsObject = sourceMethod.invoke(dep);
+            if (rootsObject instanceof FileCollection) {
+              for (File f : (FileCollection)rootsObject) {
+                libSources.add(f.toString());
+              }
+            }
+          } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            e.printStackTrace();
+          }
         }
       }
 
@@ -266,6 +300,8 @@ public class VsCodeConfigurationTask extends DefaultTask {
 
       }
 
+      tc.allLibFiles.addAll(bo.libHeaders);
+      tc.allLibFiles.addAll(libSources);
       tc.binaries.add(bo);
 
     }
