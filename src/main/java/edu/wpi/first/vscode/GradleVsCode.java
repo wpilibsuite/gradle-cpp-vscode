@@ -12,7 +12,7 @@ public class GradleVsCode implements Plugin<Project> {
       project.getTasks().create("generateVsCodeConfig", VsCodeConfigurationTask.class, task -> {
         task.setGroup("VSCode");
         task.setDescription("Generate configuration file for VSCode");
-        task.configFile.set(project.getLayout().getBuildDirectory().file("/vscodeconfig.json"));
+        task.configFile.set(project.getLayout().getBuildDirectory().file("vscodeconfig.json"));
       });
       project.getExtensions().create("vscodeConfiguration", VsCodeConfigurationExtension.class);
       project.getExtensions().getExtraProperties().set("VsCodeConfigurationTask", VsCodeConfigurationTask.class);
