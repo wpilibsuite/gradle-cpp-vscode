@@ -42,10 +42,62 @@ import org.gradle.platform.base.internal.toolchain.SearchResult;
 
 public class VsCodeConfigurationTask extends DefaultTask {
 
+  static class SourceBinaryPair {
+    public SourceBinaryPair(SourceSet ss, Source s, String c) {
+      this.cpp = ss.cpp;
+      this.args = ss.args;
+      this.macros = ss.macros;
+      this.source = s;
+      this.componentName = c;
+    }
+
+    public Source source;
+    public String componentName;
+    public boolean cpp;
+    public Set<String> args;
+    public Set<String> macros;
+
+    @Override
+    public boolean equals(Object o) {
+      if (o == this)
+        return true;
+      if (!(o instanceof SourceBinaryPair)) {
+        return false;
+      }
+
+      SourceBinaryPair tc = (SourceBinaryPair) o;
+
+      return tc.source.equals(this.source);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(this.source);
+    }
+  }
+
   static class Source {
     public Set<String> srcDirs = new HashSet<>();
     public Set<String> includes = new HashSet<>();
     public Set<String> excludes = new HashSet<>();
+
+    @Override
+    public boolean equals(Object o) {
+      if (o == this)
+        return true;
+      if (!(o instanceof Source)) {
+        return false;
+      }
+
+      Source tc = (Source) o;
+
+      return tc.srcDirs.equals(this.srcDirs) && tc.includes.equals(this.includes) && tc.excludes.equals(this.excludes);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(this.srcDirs, this.includes, this.excludes);
+    }
   }
 
   static class SourceSet {
@@ -81,6 +133,10 @@ public class VsCodeConfigurationTask extends DefaultTask {
 
     public List<BinaryObject> binaries = new ArrayList<>();
 
+    public Set<SourceBinaryPair> sourceBinaries = new HashSet<>();
+
+    public Map<String, Integer> nameBinaryMap = new HashMap<>();
+
     @Override
     public boolean equals(Object o) {
       if (o == this)
@@ -99,6 +155,13 @@ public class VsCodeConfigurationTask extends DefaultTask {
     public int hashCode() {
       return Objects.hash(architecture, operatingSystem, flavor, buildType);
     }
+  }
+
+  private String normalizeDriveLetter(String path) {
+    if (OperatingSystem.current().isWindows() && path.charAt(1) == ':') {
+      return Character.toUpperCase(path.charAt(0)) + path.substring(1);
+    }
+    return path;
   }
 
   @OutputFile
@@ -130,14 +193,14 @@ public class VsCodeConfigurationTask extends DefaultTask {
           SourceSet s = new SourceSet();
 
           for (File f : hSet.getSource().getSrcDirs()) {
-            s.source.srcDirs.add(f.toString());
+            s.source.srcDirs.add(normalizeDriveLetter(f.toString()));
           }
 
           s.source.includes.addAll(hSet.getSource().getIncludes());
           s.source.excludes.addAll(hSet.getSource().getExcludes());
 
           for (File f : hSet.getExportedHeaders().getSrcDirs()) {
-            s.exportedHeaders.srcDirs.add(f.toString());
+            s.exportedHeaders.srcDirs.add(normalizeDriveLetter(f.toString()));
           }
 
           s.exportedHeaders.includes.addAll(hSet.getExportedHeaders().getIncludes());
@@ -304,6 +367,18 @@ public class VsCodeConfigurationTask extends DefaultTask {
       tc.allLibFiles.addAll(libSources);
       tc.binaries.add(bo);
 
+    }
+
+    for(ToolChains tc : toolChains) {
+      for(int i = 0; i < tc.binaries.size(); i++) {
+
+        BinaryObject bin = tc.binaries.get(i);
+        tc.nameBinaryMap.put(bin.componentName, i);
+        for(SourceSet ss : bin.sourceSets) {
+          tc.sourceBinaries.add(new SourceBinaryPair(ss, ss.source, bin.componentName));
+          tc.sourceBinaries.add(new SourceBinaryPair(ss, ss.exportedHeaders, bin.componentName));
+        }
+      }
     }
 
     GsonBuilder builder = new GsonBuilder();
