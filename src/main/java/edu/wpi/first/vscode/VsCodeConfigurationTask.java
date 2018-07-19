@@ -207,7 +207,7 @@ public class VsCodeConfigurationTask extends DefaultTask {
           s.exportedHeaders.excludes.addAll(hSet.getExportedHeaders().getExcludes());
 
           for (Map.Entry<String, String> macro : bin.getCppCompiler().getMacros().entrySet()) {
-            s.macros.add("-D" + macro.getKey() + "=" + macro.getValue());
+            s.macros.add(macro.getKey() + "=" + macro.getValue());
           }
 
           bo.sourceSets.add(s);
@@ -215,13 +215,13 @@ public class VsCodeConfigurationTask extends DefaultTask {
           if (sSet instanceof CppSourceSet) {
             s.args.addAll(bin.getCppCompiler().getArgs());
             for (Map.Entry<String, String> macro : bin.getCppCompiler().getMacros().entrySet()) {
-              s.macros.add("-D" + macro.getKey() + "=" + macro.getValue());
+              s.macros.add(macro.getKey() + "=" + macro.getValue());
             }
             s.cpp = true;
           } else if (sSet instanceof CSourceSet) {
             s.args.addAll(bin.getcCompiler().getArgs());
             for (Map.Entry<String, String> macro : bin.getcCompiler().getMacros().entrySet()) {
-              s.macros.add("-D" + macro.getKey() + "=" + macro.getValue());
+              s.macros.add(macro.getKey() + "=" + macro.getValue());
             }
             s.cpp = false;
           }
