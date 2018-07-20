@@ -340,7 +340,7 @@ public class VsCodeConfigurationTask extends DefaultTask {
           } else {
             continue;
           }
-          tc.systemCppMacros.add(trim);
+          tc.systemCppMacros.add(trim.substring(2));
         }
 
         tc.systemCppArgs.addAll(list);
@@ -356,7 +356,7 @@ public class VsCodeConfigurationTask extends DefaultTask {
           } else {
             continue;
           }
-          tc.systemCMacros.add(trim);
+          tc.systemCMacros.add(trim.substring(2));
         }
 
         tc.systemCArgs.addAll(list);
