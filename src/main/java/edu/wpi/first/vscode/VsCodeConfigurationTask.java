@@ -38,8 +38,6 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualCpp;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
-import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
-import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
 
@@ -309,10 +307,9 @@ public class VsCodeConfigurationTask extends DefaultTask {
         }
 
         for (GccPlatformToolChain gccPlat : ext._gccLikePlatforms) {
-          if (gccPlat.getPlatform().equals(bin.getTargetPlatform()) && gccPlat instanceof ToolRegistry && toolChain instanceof GccCompatibleToolChain) {
+          if (gccPlat.getPlatform().equals(bin.getTargetPlatform()) && toolChain instanceof GccCompatibleToolChain) {
             tc.msvc = false;
             GccCompatibleToolChain gccToolC = (GccCompatibleToolChain)toolChain;
-            ToolRegistry tr = (ToolRegistry)gccPlat;
             cppInternal = (CommandLineToolConfigurationInternal) gccPlat.getCppCompiler();
             cInternal = (CommandLineToolConfigurationInternal) gccPlat.getcCompiler();
             tc.cppPath = gccPlat.getCppCompiler().getExecutable();
