@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -29,6 +29,7 @@ import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.VisualCppPlatformToolChain;
@@ -37,6 +38,8 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualCpp;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
+import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
+import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
 
@@ -77,9 +80,9 @@ public class VsCodeConfigurationTask extends DefaultTask {
   }
 
   static class Source {
-    public Set<String> srcDirs = new HashSet<>();
-    public Set<String> includes = new HashSet<>();
-    public Set<String> excludes = new HashSet<>();
+    public Set<String> srcDirs = new LinkedHashSet<>();
+    public Set<String> includes = new LinkedHashSet<>();
+    public Set<String> excludes = new LinkedHashSet<>();
 
     @Override
     public boolean equals(Object o) {
@@ -104,14 +107,14 @@ public class VsCodeConfigurationTask extends DefaultTask {
     public Source source = new Source();
     public Source exportedHeaders = new Source();
     public boolean cpp = true;
-    public Set<String> args = new HashSet<>();
-    public Set<String> macros = new HashSet<>();
+    public Set<String> args = new LinkedHashSet<>();
+    public Set<String> macros = new LinkedHashSet<>();
   }
 
   static class BinaryObject {
     public String componentName = "";
     public List<SourceSet> sourceSets = new ArrayList<>();
-    public Set<String> libHeaders = new HashSet<>();
+    public Set<String> libHeaders = new LinkedHashSet<>();
   }
 
   static class ToolChains {
@@ -124,16 +127,16 @@ public class VsCodeConfigurationTask extends DefaultTask {
     public String cPath = "";
     public boolean msvc = true;
 
-    public Set<String> systemCppMacros = new HashSet<>();
-    public Set<String> systemCppArgs = new HashSet<>();
-    public Set<String> systemCMacros = new HashSet<>();
-    public Set<String> systemCArgs = new HashSet<>();
+    public Set<String> systemCppMacros = new LinkedHashSet<>();
+    public Set<String> systemCppArgs = new LinkedHashSet<>();
+    public Set<String> systemCMacros = new LinkedHashSet<>();
+    public Set<String> systemCArgs = new LinkedHashSet<>();
 
-    public Set<String> allLibFiles = new HashSet<>();
+    public Set<String> allLibFiles = new LinkedHashSet<>();
 
     public List<BinaryObject> binaries = new ArrayList<>();
 
-    public Set<SourceBinaryPair> sourceBinaries = new HashSet<>();
+    public Set<SourceBinaryPair> sourceBinaries = new LinkedHashSet<>();
 
     public Map<String, Integer> nameBinaryMap = new HashMap<>();
 
@@ -169,7 +172,7 @@ public class VsCodeConfigurationTask extends DefaultTask {
 
   @TaskAction
   public void generate() {
-    Set<ToolChains> toolChains = new HashSet<>();
+    Set<ToolChains> toolChains = new LinkedHashSet<>();
 
     Map<Class<? extends NativeDependencySet>, Method> depClasses = new HashMap<>();
 
@@ -182,7 +185,7 @@ public class VsCodeConfigurationTask extends DefaultTask {
 
       BinaryObject bo = new BinaryObject();
 
-      Set<String> libSources = new HashSet<>();
+      Set<String> libSources = new LinkedHashSet<>();
 
       for (LanguageSourceSet sSet : bin.getInputs()) {
         if (sSet instanceof HeaderExportingSourceSet) {
@@ -306,14 +309,17 @@ public class VsCodeConfigurationTask extends DefaultTask {
         }
 
         for (GccPlatformToolChain gccPlat : ext._gccLikePlatforms) {
-          if (gccPlat.getPlatform().equals(bin.getTargetPlatform())) {
+          if (gccPlat.getPlatform().equals(bin.getTargetPlatform()) && gccPlat instanceof ToolRegistry && toolChain instanceof GccCompatibleToolChain) {
             tc.msvc = false;
+            GccCompatibleToolChain gccToolC = (GccCompatibleToolChain)toolChain;
+            ToolRegistry tr = (ToolRegistry)gccPlat;
             cppInternal = (CommandLineToolConfigurationInternal) gccPlat.getCppCompiler();
             cInternal = (CommandLineToolConfigurationInternal) gccPlat.getcCompiler();
             tc.cppPath = gccPlat.getCppCompiler().getExecutable();
             tc.cPath = gccPlat.getcCompiler().getExecutable();
 
             ToolSearchPath tsp = new ToolSearchPath(OperatingSystem.current());
+            tsp.setPath(gccToolC.getPath());
             CommandLineToolSearchResult cppSearch = tsp.locate(ToolType.CPP_COMPILER,
                 gccPlat.getCppCompiler().getExecutable());
             if (cppSearch.isAvailable()) {
