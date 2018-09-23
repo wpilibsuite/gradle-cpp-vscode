@@ -52,8 +52,10 @@ publishing {
     publications {
         pluginLocal(MavenPublication) {
             artifact(jar) {
-                classifier null
-                groupId 'gradle.plugin.' + group
+                if (project.hasProperty('localPublish')) {
+                    classifier null
+                    groupId 'gradle.plugin.' + group
+                }
             }
         }
     }
