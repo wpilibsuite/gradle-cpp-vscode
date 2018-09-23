@@ -1,7 +1,7 @@
 plugins {
     id 'java-gradle-plugin'
     id 'maven-publish'
-    id "edu.wpi.first.wpilib.versioning.WPILibVersioningPlugin" version "2.1"
+    id "edu.wpi.first.wpilib.versioning.WPILibVersioningPlugin" version "2.0"
     id "com.gradle.plugin-publish" version "0.10.0"
 }
 
@@ -61,7 +61,7 @@ publishing {
 pluginBundle {
     website = 'https://github.com/wpilibsuite/gradle-cpp-vscode'
     vcsUrl = 'https://github.com/wpilibsuite/gradle-cpp-vscode'
-    description = 'This plugin provides easy to use JNI support for gradle.'
+    description = 'Provides support for model C++ projects in VS Code'
     tags = ['groovy', 'vscode', 'cpp', 'maven', 'frc', 'wpilib']
 }
 
@@ -69,6 +69,8 @@ gradlePlugin {
     plugins {
         GradleVsCode {
             id = 'edu.wpi.first.GradleVsCode'
+            displayName = 'GradleVsCode'
+            description = 'Provides support for model C++ projects in VS Code'
             implementationClass = 'edu.wpi.first.vscode.GradleVsCode'
         }
     }
