@@ -47,18 +47,18 @@ dependencies {
     compile 'com.google.code.gson:gson:2.2.4'
 }
 
+
 publishing {
     publications {
-        plugin(MavenPublication) {
+        pluginLocal(MavenPublication) {
             artifact(jar) {
-                if (project.hasProperty('localPublish')) {
-                    classifier null
-                    groupId 'gradle.plugin.' + group
-                }
+                classifier null
+                groupId 'gradle.plugin.' + group
             }
         }
     }
 }
+
 
 pluginBundle {
     website = 'https://github.com/wpilibsuite/gradle-cpp-vscode'
