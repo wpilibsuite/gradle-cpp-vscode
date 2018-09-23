@@ -69,6 +69,7 @@ gradlePlugin {
     plugins {
         GradleVsCode {
             id = 'edu.wpi.first.GradleVsCode'
+            displayName = 'GradleVsCode'
             description = 'Provides support for model C++ projects in VS Code'
             implementationClass = 'edu.wpi.first.vscode.GradleVsCode'
         }
