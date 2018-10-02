@@ -1,7 +1,8 @@
 plugins {
     id 'java-gradle-plugin'
     id 'maven-publish'
-    id "edu.wpi.first.wpilib.versioning.WPILibVersioningPlugin" version "2.0"
+    id 'groovy'
+    id "edu.wpi.first.wpilib.versioning.WPILibVersioningPlugin" version "2.2"
     id "com.gradle.plugin-publish" version "0.9.10"
 }
 
@@ -45,6 +46,11 @@ compileJava {
 
 dependencies {
     compile 'com.google.code.gson:gson:2.2.4'
+
+    testCompile('org.spockframework:spock-core:1.1-groovy-2.4') {
+        exclude group: 'org.codehaus.groovy'
+    }
+    testCompile gradleTestKit()
 }
 
 
@@ -65,7 +71,7 @@ publishing {
 pluginBundle {
     website = 'https://github.com/wpilibsuite/gradle-cpp-vscode'
     vcsUrl = 'https://github.com/wpilibsuite/gradle-cpp-vscode'
-    description = 'This plugin provides easy to use JNI support for gradle.'
+    description = 'This plugin provides VS Code support for old stylde gradle projects.'
     tags = ['groovy', 'vscode', 'cpp', 'maven', 'frc', 'wpilib']
 
     plugins {

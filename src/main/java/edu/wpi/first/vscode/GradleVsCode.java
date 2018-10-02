@@ -8,17 +8,6 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 
 public class GradleVsCode implements Plugin<Project> {
   public void apply(Project project) {
-
-    if (project.equals(project.getRootProject())) {
-      project.getTasks().register("generateVsCodeConfig", VsCodeConfigurationTask.class, task -> {
-        task.setGroup("VSCode");
-        task.setDescription("Generate configuration file for VSCode");
-        task.configFile.set(project.getLayout().getBuildDirectory().file("vscodeconfig.json"));
-      });
-      project.getExtensions().create("vscodeConfiguration", VsCodeConfigurationExtension.class);
-      project.getExtensions().getExtraProperties().set("VsCodeConfigurationTask", VsCodeConfigurationTask.class);
-    }
-
     project.subprojects(subproject -> {
       subproject.apply(config -> {
         config.plugin(GradleVsCode.class);
@@ -26,6 +15,17 @@ public class GradleVsCode implements Plugin<Project> {
     });
 
     project.getPlugins().withType(NativeComponentPlugin.class, a -> {
+      Project rootProject = project.getRootProject();
+      VsCodeConfigurationExtension vsce = rootProject.getExtensions().findByType(VsCodeConfigurationExtension.class);
+      if (vsce == null) {
+        rootProject.getTasks().register("generateVsCodeConfig", VsCodeConfigurationTask.class, task -> {
+          task.setGroup("VSCode");
+          task.setDescription("Generate configuration file for VSCode");
+          task.configFile.set(rootProject.getLayout().getBuildDirectory().file("vscodeconfig.json"));
+        });
+        rootProject.getExtensions().create("vscodeConfiguration", VsCodeConfigurationExtension.class);
+        rootProject.getExtensions().getExtraProperties().set("VsCodeConfigurationTask", VsCodeConfigurationTask.class);
+      }
       project.getPluginManager().apply(GradleVsCodeRules.class);
       try {
         project.getTasks().named("generateVsCodeConfig");
