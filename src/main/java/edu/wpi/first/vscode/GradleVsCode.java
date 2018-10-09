@@ -24,8 +24,7 @@ public class GradleVsCode implements Plugin<Project> {
     }
 
     public Object buildAll(String modelName, Project project) {
-      VsCodeConfigurationExtension ext = project.getExtensions().getByType(VsCodeConfigurationExtension.class);
-      String toolChains = ToolChainGenerator.generateToolChains(ext);
+      String toolChains = ToolChainGenerator.generateToolChains(project);
       return new DefaultNativeModel(toolChains);
     }
   }

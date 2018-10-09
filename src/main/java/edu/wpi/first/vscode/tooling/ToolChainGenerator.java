@@ -12,6 +12,7 @@ import java.util.Set;
 
 import com.google.gson.GsonBuilder;
 
+import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.LanguageSourceSet;
@@ -47,7 +48,8 @@ public class ToolChainGenerator {
     return path;
   }
 
-  public static String generateToolChains(VsCodeConfigurationExtension ext) {
+  public static String generateToolChains(Project project) {
+    VsCodeConfigurationExtension ext = project.getExtensions().getByType(VsCodeConfigurationExtension.class);
     Set<ToolChains> toolChains = new LinkedHashSet<>();
 
     Map<Class<? extends NativeDependencySet>, Method> depClasses = new HashMap<>();

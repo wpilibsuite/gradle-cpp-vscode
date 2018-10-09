@@ -18,8 +18,7 @@ public class VsCodeConfigurationTask extends DefaultTask {
 
   @TaskAction
   public void generate() {
-    VsCodeConfigurationExtension ext = getProject().getExtensions().getByType(VsCodeConfigurationExtension.class);
-    String toolChains = ToolChainGenerator.generateToolChains(ext);
+    String toolChains = ToolChainGenerator.generateToolChains(getProject());
 
     File file = configFile.getAsFile().get();
     file.getParentFile().mkdirs();
