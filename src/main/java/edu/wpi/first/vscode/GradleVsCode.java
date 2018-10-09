@@ -1,5 +1,7 @@
 package edu.wpi.first.vscode;
 
+import java.util.Set;
+
 import javax.inject.Inject;
 
 import org.gradle.api.Plugin;
@@ -13,6 +15,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import edu.wpi.first.vscode.tooling.DefaultNativeModel;
 import edu.wpi.first.vscode.tooling.NativeModel;
 import edu.wpi.first.vscode.tooling.ToolChainGenerator;
+import edu.wpi.first.vscode.tooling.models.ToolChains;
 
 public class GradleVsCode implements Plugin<Project> {
   private final ToolingModelBuilderRegistry registry;
@@ -24,7 +27,7 @@ public class GradleVsCode implements Plugin<Project> {
     }
 
     public Object buildAll(String modelName, Project project) {
-      String toolChains = ToolChainGenerator.generateToolChains(project);
+      Set<ToolChains> toolChains = ToolChainGenerator.generateToolChains(project);
       return new DefaultNativeModel(toolChains);
     }
   }

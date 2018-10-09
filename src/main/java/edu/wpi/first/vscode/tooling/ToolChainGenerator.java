@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.gson.GsonBuilder;
-
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.os.OperatingSystem;
@@ -36,9 +34,12 @@ import org.gradle.platform.base.internal.toolchain.SearchResult;
 
 import edu.wpi.first.vscode.VsCodeConfigurationExtension;
 import edu.wpi.first.vscode.tooling.models.BinaryObject;
-import edu.wpi.first.vscode.tooling.models.SourceBinaryPair;
+import edu.wpi.first.vscode.tooling.models.BinaryObjectImpl;
+import edu.wpi.first.vscode.tooling.models.SourceBinaryPairImpl;
 import edu.wpi.first.vscode.tooling.models.SourceSet;
+import edu.wpi.first.vscode.tooling.models.SourceSetImpl;
 import edu.wpi.first.vscode.tooling.models.ToolChains;
+import edu.wpi.first.vscode.tooling.models.ToolChainsImpl;
 
 public class ToolChainGenerator {
   private static String normalizeDriveLetter(String path) {
@@ -48,7 +49,7 @@ public class ToolChainGenerator {
     return path;
   }
 
-  public static String generateToolChains(Project project) {
+  public static Set<ToolChains> generateToolChains(Project project) {
     VsCodeConfigurationExtension ext = project.getExtensions().getByType(VsCodeConfigurationExtension.class);
     Set<ToolChains> toolChains = new LinkedHashSet<>();
 
@@ -59,7 +60,7 @@ public class ToolChainGenerator {
         continue;
       }
 
-      BinaryObject bo = new BinaryObject();
+      BinaryObjectImpl bo = new BinaryObjectImpl();
 
       Set<String> libSources = new LinkedHashSet<>();
 
@@ -69,38 +70,38 @@ public class ToolChainGenerator {
             continue;
           }
           HeaderExportingSourceSet hSet = (HeaderExportingSourceSet) sSet;
-          SourceSet s = new SourceSet();
+          SourceSetImpl s = new SourceSetImpl();
 
           for (File f : hSet.getSource().getSrcDirs()) {
-            s.source.srcDirs.add(normalizeDriveLetter(f.toString()));
+            s.getSource().getSrcDirs().add(normalizeDriveLetter(f.toString()));
           }
 
-          s.source.includes.addAll(hSet.getSource().getIncludes());
-          s.source.excludes.addAll(hSet.getSource().getExcludes());
+          s.getSource().getIncludes().addAll(hSet.getSource().getIncludes());
+          s.getSource().getExcludes().addAll(hSet.getSource().getExcludes());
 
           for (File f : hSet.getExportedHeaders().getSrcDirs()) {
-            s.exportedHeaders.srcDirs.add(normalizeDriveLetter(f.toString()));
+            s.getExportedHeaders().getSrcDirs().add(normalizeDriveLetter(f.toString()));
           }
 
-          s.exportedHeaders.includes.addAll(hSet.getExportedHeaders().getIncludes());
-          s.exportedHeaders.excludes.addAll(hSet.getExportedHeaders().getExcludes());
+          s.getExportedHeaders().getIncludes().addAll(hSet.getExportedHeaders().getIncludes());
+          s.getExportedHeaders().getExcludes().addAll(hSet.getExportedHeaders().getExcludes());
 
           for (Map.Entry<String, String> macro : bin.getCppCompiler().getMacros().entrySet()) {
-            s.macros.add(macro.getKey() + "=" + macro.getValue());
+            s.getMacros().add(macro.getKey() + "=" + macro.getValue());
           }
 
-          bo.sourceSets.add(s);
+          bo.getSourceSets().add(s);
 
           if (sSet instanceof CppSourceSet) {
-            s.args.addAll(bin.getCppCompiler().getArgs());
+            s.getArgs().addAll(bin.getCppCompiler().getArgs());
             for (Map.Entry<String, String> macro : bin.getCppCompiler().getMacros().entrySet()) {
-              s.macros.add(macro.getKey() + "=" + macro.getValue());
+              s.getMacros().add(macro.getKey() + "=" + macro.getValue());
             }
             s.cpp = true;
           } else if (sSet instanceof CSourceSet) {
-            s.args.addAll(bin.getcCompiler().getArgs());
+            s.getArgs().addAll(bin.getcCompiler().getArgs());
             for (Map.Entry<String, String> macro : bin.getcCompiler().getMacros().entrySet()) {
-              s.macros.add(macro.getKey() + "=" + macro.getValue());
+              s.getMacros().add(macro.getKey() + "=" + macro.getValue());
             }
             s.cpp = false;
           }
@@ -110,7 +111,7 @@ public class ToolChainGenerator {
 
       for (NativeDependencySet dep : bin.getLibs()) {
         for (File f : dep.getIncludeRoots()) {
-          bo.libHeaders.add(f.toString());
+          bo.getLibHeaders().add(f.toString());
         }
         Class<? extends NativeDependencySet> cls = dep.getClass();
         Method sourceMethod = null;
@@ -140,24 +141,26 @@ public class ToolChainGenerator {
 
       bo.componentName = bin.getComponent().getName();
 
-      ToolChains tc = new ToolChains();
+      ToolChainsImpl tci = new ToolChainsImpl();
 
-      tc.flavor = bin.getFlavor().getName();
-      tc.buildType = bin.getBuildType().getName();
+      tci.flavor = bin.getFlavor().getName();
+      tci.buildType = bin.getBuildType().getName();
 
-      tc.architecture = bin.getTargetPlatform().getArchitecture().getName();
-      tc.operatingSystem = bin.getTargetPlatform().getOperatingSystem().getName();
+      tci.architecture = bin.getTargetPlatform().getArchitecture().getName();
+      tci.operatingSystem = bin.getTargetPlatform().getOperatingSystem().getName();
 
-      boolean added = toolChains.add(tc);
+      boolean added = toolChains.add(tci);
+
+      ToolChains tc = tci;
+
       if (!added) {
         for (ToolChains tc2 : toolChains) {
-          if (tc.equals(tc2)) {
+          if (tci.equals(tc2)) {
             tc = tc2;
           }
         }
       } else {
-
-        tc.name = bin.getTargetPlatform().getName();
+        tci.name = bin.getTargetPlatform().getName();
 
         CommandLineToolConfigurationInternal cppInternal = null;
         CommandLineToolConfigurationInternal cInternal = null;
@@ -166,7 +169,7 @@ public class ToolChainGenerator {
 
         for (VisualCppPlatformToolChain msvcPlat : ext._visualCppPlatforms) {
           if (msvcPlat.getPlatform().equals(bin.getTargetPlatform())) {
-            tc.msvc = true;
+            tci.msvc = true;
             cppInternal = (CommandLineToolConfigurationInternal) msvcPlat.getCppCompiler();
             cInternal = (CommandLineToolConfigurationInternal) msvcPlat.getcCompiler();
 
@@ -176,8 +179,8 @@ public class ToolChainGenerator {
               if (vsiSearch.isAvailable()) {
                 VisualStudioInstall vsi = vsiSearch.getComponent();
                 VisualCpp vscpp = vsi.getVisualCpp().forPlatform((NativePlatformInternal) bin.getTargetPlatform());
-                tc.cppPath = vscpp.getCompilerExecutable().toString();
-                tc.cPath = vscpp.getCompilerExecutable().toString();
+                tci.cppPath = vscpp.getCompilerExecutable().toString();
+                tci.cPath = vscpp.getCompilerExecutable().toString();
                 break;
               }
             }
@@ -186,24 +189,24 @@ public class ToolChainGenerator {
 
         for (GccPlatformToolChain gccPlat : ext._gccLikePlatforms) {
           if (gccPlat.getPlatform().equals(bin.getTargetPlatform()) && toolChain instanceof GccCompatibleToolChain) {
-            tc.msvc = false;
+            tci.msvc = false;
             GccCompatibleToolChain gccToolC = (GccCompatibleToolChain)toolChain;
             cppInternal = (CommandLineToolConfigurationInternal) gccPlat.getCppCompiler();
             cInternal = (CommandLineToolConfigurationInternal) gccPlat.getcCompiler();
-            tc.cppPath = gccPlat.getCppCompiler().getExecutable();
-            tc.cPath = gccPlat.getcCompiler().getExecutable();
+            tci.cppPath = gccPlat.getCppCompiler().getExecutable();
+            tci.cPath = gccPlat.getcCompiler().getExecutable();
 
             ToolSearchPath tsp = new ToolSearchPath(OperatingSystem.current());
             tsp.setPath(gccToolC.getPath());
             CommandLineToolSearchResult cppSearch = tsp.locate(ToolType.CPP_COMPILER,
                 gccPlat.getCppCompiler().getExecutable());
             if (cppSearch.isAvailable()) {
-              tc.cppPath = cppSearch.getTool().toString();
+              tci.cppPath = cppSearch.getTool().toString();
             }
             CommandLineToolSearchResult cSearch = tsp.locate(ToolType.C_COMPILER,
                 gccPlat.getcCompiler().getExecutable());
             if (cSearch.isAvailable()) {
-              tc.cPath = cSearch.getTool().toString();
+              tci.cPath = cSearch.getTool().toString();
             }
             if (cppSearch.isAvailable() && cSearch.isAvailable()) {
               break;
@@ -221,10 +224,10 @@ public class ToolChainGenerator {
           } else {
             continue;
           }
-          tc.systemCppMacros.add(trim.substring(2));
+          tc.getSystemCppMacros().add(trim.substring(2));
         }
 
-        tc.systemCppArgs.addAll(list);
+        tc.getSystemCppArgs().addAll(list);
 
         list.clear();
 
@@ -237,38 +240,32 @@ public class ToolChainGenerator {
           } else {
             continue;
           }
-          tc.systemCMacros.add(trim.substring(2));
+          tc.getSystemCMacros().add(trim.substring(2));
         }
 
-        tc.systemCArgs.addAll(list);
+        tc.getSystemCArgs().addAll(list);
 
       }
 
-      tc.allLibFiles.addAll(bo.libHeaders);
-      tc.allLibFiles.addAll(libSources);
-      tc.binaries.add(bo);
+      tc.getAllLibFiles().addAll(bo.libHeaders);
+      tc.getAllLibFiles().addAll(libSources);
+      tc.getBinaries().add(bo);
 
     }
 
     for(ToolChains tc : toolChains) {
-      for(int i = 0; i < tc.binaries.size(); i++) {
+      List<BinaryObject> binaries = tc.getBinaries();
+      for(int i = 0; i < binaries.size(); i++) {
 
-        BinaryObject bin = tc.binaries.get(i);
-        tc.nameBinaryMap.put(bin.componentName, i);
-        for(SourceSet ss : bin.sourceSets) {
-          tc.sourceBinaries.add(new SourceBinaryPair(ss, ss.source, bin.componentName));
-          tc.sourceBinaries.add(new SourceBinaryPair(ss, ss.exportedHeaders, bin.componentName));
+        BinaryObject bin = binaries.get(i);
+        tc.getNameBinaryMap().put(bin.getComponentName(), i);
+        for(SourceSet ss : bin.getSourceSets()) {
+          tc.getSourceBinaries().add(new SourceBinaryPairImpl(ss, ss.getSource(), bin.getComponentName()));
+          tc.getSourceBinaries().add(new SourceBinaryPairImpl(ss, ss.getExportedHeaders(), bin.getComponentName()));
         }
       }
     }
 
-    GsonBuilder builder = new GsonBuilder();
-
-    if (ext.getPrettyPrinting()) {
-      builder.setPrettyPrinting();
-    }
-
-    String json = builder.create().toJson(toolChains);
-    return json;
+    return toolChains;
   }
 }
