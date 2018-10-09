@@ -6,3 +6,5 @@ build/
 .project
 .vscode
 !extension/.vscode
+.idea/
+*.iml
