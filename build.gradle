@@ -3,7 +3,7 @@ plugins {
     id 'maven-publish'
     id 'groovy'
     id "edu.wpi.first.wpilib.versioning.WPILibVersioningPlugin" version "2.2"
-    id "com.gradle.plugin-publish" version "0.9.10"
+    id "com.gradle.plugin-publish" version "0.10.0"
 }
 
 // Ensure that the WPILibVersioningPlugin is setup by setting the release type, if releaseType wasn't
@@ -47,24 +47,10 @@ compileJava {
 dependencies {
     compile 'com.google.code.gson:gson:2.2.4'
 
-    testCompile('org.spockframework:spock-core:1.1-groovy-2.4') {
+    testCompile('org.spockframework:spock-core:1.2-groovy-2.5') {
         exclude group: 'org.codehaus.groovy'
     }
     testCompile gradleTestKit()
-}
-
-
-publishing {
-    publications {
-        pluginLocal(MavenPublication) {
-            artifact(jar) {
-                if (project.hasProperty('localPublish')) {
-                    classifier null
-                    groupId 'gradle.plugin.' + group
-                }
-            }
-        }
-    }
 }
 
 
@@ -73,13 +59,6 @@ pluginBundle {
     vcsUrl = 'https://github.com/wpilibsuite/gradle-cpp-vscode'
     description = 'This plugin provides VS Code support for old stylde gradle projects.'
     tags = ['groovy', 'vscode', 'cpp', 'maven', 'frc', 'wpilib']
-
-    plugins {
-        GradleVsCode {
-            id = 'edu.wpi.first.GradleVsCode'
-            displayName = 'Gradle VS Code'
-        }
-    }
 }
 
 gradlePlugin {
@@ -92,5 +71,5 @@ gradlePlugin {
 }
 
 wrapper {
-    gradleVersion = '4.9'
+    gradleVersion = '5.0'
 }
