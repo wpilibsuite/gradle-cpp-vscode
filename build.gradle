@@ -65,6 +65,7 @@ gradlePlugin {
     plugins {
         GradleVsCode {
             id = 'edu.wpi.first.GradleVsCode'
+            displayName = 'GradleVsCode'
             implementationClass = 'edu.wpi.first.vscode.GradleVsCode'
         }
     }
