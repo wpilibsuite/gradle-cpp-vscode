@@ -10,7 +10,6 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.UcrtLocator;
@@ -26,7 +25,7 @@ public class GradleVsCodeRules extends RuleSource {
     Project project = (Project)projectLayout.getProjectIdentifier();
     Project rootProject = project.getRootProject();
     VsCodeConfigurationExtension ext = rootProject.getExtensions().getByType(VsCodeConfigurationExtension.class);
-    for (NativeToolChain tc : toolChains) {
+    toolChains.all(tc -> {
       if (tc instanceof VisualCpp) {
         VisualCpp vtc = (VisualCpp)tc;
         vtc.eachPlatform(t -> {
@@ -38,7 +37,7 @@ public class GradleVsCodeRules extends RuleSource {
             ext._gccLikePlatforms.add(t);
         });
       }
-    }
+    });
   }
 
   @Mutate
