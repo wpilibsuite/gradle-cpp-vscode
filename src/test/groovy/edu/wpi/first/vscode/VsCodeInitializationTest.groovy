@@ -84,7 +84,7 @@ model {
     then:
     result.task(':generateVsCodeConfig').outcome == SUCCESS
     def root = testProjectDir.root
-    def configFile = new File(root.toString(), 'build/vscodeConfig.json')
+    def configFile = new File(root.toString(), 'build/vscodeconfig.json')
     assert configFile.exists()
   }
 
@@ -114,7 +114,7 @@ model {
     then:
     result.task(':generateVsCodeConfig').outcome == SUCCESS
     def root = testProjectDir.root
-    def configFile = new File(root.toString(), 'build/vscodeConfig.json')
+    def configFile = new File(root.toString(), 'build/vscodeconfig.json')
     assert configFile.exists()
   }
     def "Sub Project Uses Extension Correctly"() {
@@ -157,7 +157,7 @@ model {
     then:
     result.task(':generateVsCodeConfig').outcome == SUCCESS
     def root = testProjectDir.root
-    def configFile = new File(root.toString(), 'build/vscodeConfig.json')
+    def configFile = new File(root.toString(), 'build/vscodeconfig.json')
     assert configFile.exists()
     println configFile.text
   }
