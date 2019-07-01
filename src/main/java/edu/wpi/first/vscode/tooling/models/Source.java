@@ -6,4 +6,6 @@ public interface Source {
   Set<String> getSrcDirs();
   Set<String> getIncludes();
   Set<String> getExcludes();
+
+  void setSrcDirs(Set<String> srcDirs);
 }

@@ -1,44 +1,14 @@
 package edu.wpi.first.vscode;
 
-import java.util.Set;
-
-import javax.inject.Inject;
-
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
-import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
-
-import edu.wpi.first.vscode.tooling.DefaultNativeModel;
-import edu.wpi.first.vscode.tooling.NativeModel;
-import edu.wpi.first.vscode.tooling.ToolChainGenerator;
-import edu.wpi.first.vscode.tooling.models.ToolChains;
 
 public class GradleVsCode implements Plugin<Project> {
-  private final ToolingModelBuilderRegistry registry;
-
-  private static class NativeToolingModelBuilder implements ToolingModelBuilder {
-    public boolean canBuild(String modelName) {
-      // The default name for a model is the name of the Java interface
-      return modelName.equals(NativeModel.class.getName());
-    }
-
-    public Object buildAll(String modelName, Project project) {
-      Set<ToolChains> toolChains = ToolChainGenerator.generateToolChains(project);
-      return new DefaultNativeModel(toolChains);
-    }
-  }
-
-  @Inject
-  public GradleVsCode(ToolingModelBuilderRegistry registry) {
-    this.registry = registry;
-  }
 
   public void apply(Project project) {
-    registry.register(new NativeToolingModelBuilder());
 
     project.subprojects(subproject -> {
       subproject.apply(config -> {

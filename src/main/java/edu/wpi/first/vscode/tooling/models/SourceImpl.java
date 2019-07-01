@@ -7,7 +7,7 @@ import java.util.Set;
 
 public class SourceImpl implements Source, Serializable {
   private static final long serialVersionUID = 8327004533674695786L;
-  public Set<String> srcDirs = new LinkedHashSet<>();
+  public Set<String> srcDirs;
   public Set<String> includes = new LinkedHashSet<>();
   public Set<String> excludes = new LinkedHashSet<>();
 
@@ -42,5 +42,10 @@ public class SourceImpl implements Source, Serializable {
   @Override
   public Set<String> getExcludes() {
     return excludes;
+  }
+
+  @Override
+  public void setSrcDirs(Set<String> srcDirs) {
+    this.srcDirs = srcDirs;
   }
 }

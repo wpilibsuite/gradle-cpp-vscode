@@ -3,12 +3,14 @@ package edu.wpi.first.vscode.tooling;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
@@ -72,19 +74,15 @@ public class ToolChainGenerator {
           HeaderExportingSourceSet hSet = (HeaderExportingSourceSet) sSet;
           SourceSetImpl s = new SourceSetImpl();
 
-          for (File f : hSet.getSource().getSrcDirs()) {
-            s.getSource().getSrcDirs().add(normalizeDriveLetter(f.toString()));
-          }
+          s.getSource().setSrcDirs(hSet.getSource().getSrcDirs().stream().map(x -> normalizeDriveLetter(x.toString()) + File.separator).collect(Collectors.toSet()));
 
           s.getSource().getIncludes().addAll(hSet.getSource().getIncludes());
           s.getSource().getExcludes().addAll(hSet.getSource().getExcludes());
 
-          for (File f : hSet.getExportedHeaders().getSrcDirs()) {
-            s.getExportedHeaders().getSrcDirs().add(normalizeDriveLetter(f.toString()));
-          }
+          s.getExportedHeaders().setSrcDirs(hSet.getSource().getSrcDirs().stream().map(x -> normalizeDriveLetter(x.toString()) + File.separator).collect(Collectors.toSet()));
 
-          s.getExportedHeaders().getIncludes().addAll(hSet.getExportedHeaders().getIncludes());
-          s.getExportedHeaders().getExcludes().addAll(hSet.getExportedHeaders().getExcludes());
+          s.getExportedHeaders().getIncludes().addAll(hSet.getSource().getIncludes());
+          s.getExportedHeaders().getExcludes().addAll(hSet.getSource().getExcludes());
 
           for (Map.Entry<String, String> macro : bin.getCppCompiler().getMacros().entrySet()) {
             s.getMacros().add(macro.getKey() + "=" + macro.getValue());
@@ -111,7 +109,7 @@ public class ToolChainGenerator {
 
       for (NativeDependencySet dep : bin.getLibs()) {
         for (File f : dep.getIncludeRoots()) {
-          bo.getLibHeaders().add(f.toString());
+          bo.getLibHeaders().add(f.toString() + File.separator);
         }
         Class<? extends NativeDependencySet> cls = dep.getClass();
         Method sourceMethod = null;
@@ -130,7 +128,7 @@ public class ToolChainGenerator {
             Object rootsObject = sourceMethod.invoke(dep);
             if (rootsObject instanceof FileCollection) {
               for (File f : (FileCollection)rootsObject) {
-                libSources.add(f.toString());
+                libSources.add(f.toString() + File.separator);
               }
             }
           } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
