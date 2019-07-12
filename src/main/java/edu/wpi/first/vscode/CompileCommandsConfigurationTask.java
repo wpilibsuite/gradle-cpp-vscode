@@ -43,7 +43,7 @@ public class CompileCommandsConfigurationTask extends DefaultTask {
 
     VsCodeConfigurationExtension ext = getProject().getExtensions().getByType(VsCodeConfigurationExtension.class);
 
-    GsonBuilder builder = new GsonBuilder();
+    GsonBuilder builder = new GsonBuilder().disableHtmlEscaping();
 
     File dir = configDirectory.get().getAsFile();
 

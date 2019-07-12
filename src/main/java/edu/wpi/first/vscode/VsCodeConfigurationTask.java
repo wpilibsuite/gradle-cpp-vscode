@@ -33,7 +33,7 @@ public class VsCodeConfigurationTask extends DefaultTask {
     Set<ToolChains> toolChains = ToolChainGenerator.generateToolChains(getProject());
     VsCodeConfigurationExtension ext = getProject().getExtensions().getByType(VsCodeConfigurationExtension.class);
 
-    GsonBuilder builder = new GsonBuilder();
+    GsonBuilder builder = new GsonBuilder().disableHtmlEscaping();
 
     if (ext.getPrettyPrinting()) {
       builder.setPrettyPrinting();

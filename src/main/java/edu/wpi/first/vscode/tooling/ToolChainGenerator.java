@@ -78,7 +78,7 @@ public class ToolChainGenerator {
           s.getSource().getIncludes().addAll(hSet.getSource().getIncludes());
           s.getSource().getExcludes().addAll(hSet.getSource().getExcludes());
 
-          s.getExportedHeaders().setSrcDirs(hSet.getSource().getSrcDirs().stream().map(x -> normalizeDriveLetter(x.toString()) + File.separator).collect(Collectors.toSet()));
+          s.getExportedHeaders().setSrcDirs(hSet.getExportedHeaders().getSrcDirs().stream().map(x -> normalizeDriveLetter(x.toString()) + File.separator).collect(Collectors.toSet()));
 
           s.getExportedHeaders().getIncludes().addAll(hSet.getSource().getIncludes());
           s.getExportedHeaders().getExcludes().addAll(hSet.getSource().getExcludes());
