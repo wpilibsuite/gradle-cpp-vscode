@@ -25,6 +25,12 @@ public class GradleVsCode implements Plugin<Project> {
           task.setDescription("Generate configuration file for VSCode");
           task.configFile.set(rootProject.getLayout().getBuildDirectory().file("vscodeconfig.json"));
         });
+
+        rootProject.getTasks().register("generateCompileCommands", CompileCommandsConfigurationTask.class, task -> {
+          task.setGroup("CompileCommands");
+          task.setDescription("Generate compile_commands.json");
+          task.configDirectory.set(rootProject.getLayout().getBuildDirectory().dir("compile_commands"));
+        });
         rootProject.getExtensions().create("vscodeConfiguration", VsCodeConfigurationExtension.class);
         rootProject.getExtensions().getExtraProperties().set("VsCodeConfigurationTask", VsCodeConfigurationTask.class);
       }
@@ -34,6 +40,15 @@ public class GradleVsCode implements Plugin<Project> {
       } catch (UnknownTaskException ex) {
         project.getTasks().register("generateVsCodeConfig", Task.class, task -> {
           task.setGroup("VSCode");
+          task.setDescription("Shim task to enable project creation");
+        });
+      }
+
+      try {
+        project.getTasks().named("generateCompileCommands");
+      } catch (UnknownTaskException ex) {
+        project.getTasks().register("generateCompileCommands", Task.class, task -> {
+          task.setGroup("CompileCommands");
           task.setDescription("Shim task to enable project creation");
         });
       }
