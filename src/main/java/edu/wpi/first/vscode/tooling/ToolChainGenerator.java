@@ -87,7 +87,11 @@ public class ToolChainGenerator {
           s.getExportedHeaders().getExcludes().addAll(hSet.getSource().getExcludes());
 
           for (Map.Entry<String, String> macro : bin.getCppCompiler().getMacros().entrySet()) {
-            s.getMacros().add(macro.getKey() + "=" + macro.getValue());
+            if (macro.getValue() == null) {
+              s.getMacros().add("-D" + macro.getKey());
+            } else {
+              s.getMacros().add("-D" + macro.getKey() + "=" + macro.getValue());
+            }
           }
 
           bo.getSourceSets().add(s);
@@ -95,13 +99,21 @@ public class ToolChainGenerator {
           if (sSet instanceof CppSourceSet) {
             s.getArgs().addAll(bin.getCppCompiler().getArgs());
             for (Map.Entry<String, String> macro : bin.getCppCompiler().getMacros().entrySet()) {
-              s.getMacros().add(macro.getKey() + "=" + macro.getValue());
+              if (macro.getValue() == null) {
+                s.getMacros().add("-D" + macro.getKey());
+              } else {
+                s.getMacros().add("-D" + macro.getKey() + "=" + macro.getValue());
+              }
             }
             s.cpp = true;
           } else if (sSet instanceof CSourceSet) {
             s.getArgs().addAll(bin.getcCompiler().getArgs());
             for (Map.Entry<String, String> macro : bin.getcCompiler().getMacros().entrySet()) {
-              s.getMacros().add(macro.getKey() + "=" + macro.getValue());
+              if (macro.getValue() == null) {
+                s.getMacros().add("-D" + macro.getKey());
+              } else {
+                s.getMacros().add("-D" + macro.getKey() + "=" + macro.getValue());
+              }
             }
             s.cpp = false;
           }
