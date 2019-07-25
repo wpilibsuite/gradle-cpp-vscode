@@ -52,6 +52,9 @@ public class ToolChainGenerator {
 
   public static Set<ToolChains> generateToolChains(Project project) {
     VsCodeConfigurationExtension ext = project.getExtensions().getByType(VsCodeConfigurationExtension.class);
+    if (ext._toolChainsStore != null) {
+      return ext._toolChainsStore;
+    }
     Set<ToolChains> toolChains = new LinkedHashSet<>();
 
     Map<Class<? extends NativeDependencySet>, Method> depClasses = new HashMap<>();
@@ -263,6 +266,7 @@ public class ToolChainGenerator {
       }
     }
 
+    ext._toolChainsStore = toolChains;
     return toolChains;
   }
 }
