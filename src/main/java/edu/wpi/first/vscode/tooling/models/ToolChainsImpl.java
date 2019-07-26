@@ -19,6 +19,7 @@ public class ToolChainsImpl implements ToolChains, Serializable {
   public String cppPath = "";
   public String cPath = "";
   public boolean msvc = true;
+  public boolean gcc = false;
 
   public Set<String> systemCppMacros = new LinkedHashSet<>();
   public Set<String> systemCppArgs = new LinkedHashSet<>();
@@ -130,5 +131,10 @@ public class ToolChainsImpl implements ToolChains, Serializable {
   @Override
   public Map<String, Integer> getNameBinaryMap() {
     return nameBinaryMap;
+  }
+
+  @Override
+  public boolean getGcc() {
+    return gcc;
   }
 }

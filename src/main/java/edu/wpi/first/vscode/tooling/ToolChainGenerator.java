@@ -21,6 +21,7 @@ import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
@@ -202,6 +203,7 @@ public class ToolChainGenerator {
         for (GccPlatformToolChain gccPlat : ext._gccLikePlatforms) {
           if (gccPlat.getPlatform().equals(bin.getTargetPlatform()) && toolChain instanceof GccCompatibleToolChain) {
             tci.msvc = false;
+            tci.gcc = !(toolChain instanceof Clang);
             GccCompatibleToolChain gccToolC = (GccCompatibleToolChain)toolChain;
             cppInternal = (CommandLineToolConfigurationInternal) gccPlat.getCppCompiler();
             cInternal = (CommandLineToolConfigurationInternal) gccPlat.getcCompiler();

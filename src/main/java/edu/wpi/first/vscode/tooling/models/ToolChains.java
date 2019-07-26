@@ -13,6 +13,7 @@ public interface ToolChains {
   String getCppPath();
   String getCPath();
   boolean getMsvc();
+  boolean getGcc();
 
   Set<String> getSystemCppMacros();
   Set<String> getSystemCppArgs();
