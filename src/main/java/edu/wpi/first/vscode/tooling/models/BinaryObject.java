@@ -7,4 +7,6 @@ public interface BinaryObject {
   String getComponentName();
   List<SourceSet> getSourceSets();
   Set<String> getLibHeaders();
+  boolean isSharedLibrary();
+  boolean isExecutable();
 }

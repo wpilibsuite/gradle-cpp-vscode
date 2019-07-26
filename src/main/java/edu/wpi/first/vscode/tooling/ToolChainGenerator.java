@@ -20,6 +20,9 @@ import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeDependencySet;
+import org.gradle.nativeplatform.NativeExecutableBinary;
+import org.gradle.nativeplatform.NativeExecutableBinarySpec;
+import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
@@ -153,6 +156,9 @@ public class ToolChainGenerator {
       }
 
       bo.componentName = bin.getComponent().getName();
+
+      bo.sharedLibrary = (bin instanceof SharedLibraryBinarySpec);
+      bo.executable = (bin instanceof NativeExecutableBinarySpec);
 
       ToolChainsImpl tci = new ToolChainsImpl();
 

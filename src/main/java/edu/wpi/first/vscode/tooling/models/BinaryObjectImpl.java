@@ -11,6 +11,8 @@ public class BinaryObjectImpl implements BinaryObject, Serializable {
   public String componentName = "";
   public List<SourceSet> sourceSets = new ArrayList<>();
   public Set<String> libHeaders = new LinkedHashSet<>();
+  public boolean sharedLibrary;
+  public boolean executable;
 
   @Override
   public String getComponentName() {
@@ -25,5 +27,15 @@ public class BinaryObjectImpl implements BinaryObject, Serializable {
   @Override
   public Set<String> getLibHeaders() {
     return libHeaders;
+  }
+
+  @Override
+  public boolean isSharedLibrary() {
+    return sharedLibrary;
+  }
+
+  @Override
+  public boolean isExecutable() {
+    return executable;
   }
 }
