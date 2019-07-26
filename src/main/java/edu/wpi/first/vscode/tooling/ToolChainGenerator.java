@@ -20,7 +20,6 @@ import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeDependencySet;
-import org.gradle.nativeplatform.NativeExecutableBinary;
 import org.gradle.nativeplatform.NativeExecutableBinarySpec;
 import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
