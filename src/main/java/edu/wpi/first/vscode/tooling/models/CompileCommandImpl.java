@@ -38,6 +38,7 @@ public class CompileCommandImpl implements CompileCommand {
 
     for (String arg : compilerMacros) {
       cmd.append('"');
+      cmd.append("-D");
       cmd.append(arg);
       cmd.append('"');
       cmd.append(' ');
@@ -69,6 +70,7 @@ public class CompileCommandImpl implements CompileCommand {
 
     for (String arg : sourceSet.getMacros()) {
       cmd.append('"');
+      cmd.append("-D");
       cmd.append(arg);
       cmd.append('"');
       cmd.append(' ');
