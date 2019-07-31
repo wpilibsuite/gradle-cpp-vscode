@@ -8,4 +8,7 @@ public interface SourceBinaryPair {
   boolean getCpp();
   Set<String> getArgs();
   Set<String> getMacros();
+
+  boolean isSharedLibrary();
+  boolean isExecutable();
 }

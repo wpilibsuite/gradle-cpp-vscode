@@ -7,12 +7,14 @@ import java.util.Set;
 public class SourceBinaryPairImpl implements SourceBinaryPair, Serializable {
   private static final long serialVersionUID = 6250958742543552175L;
 
-  public SourceBinaryPairImpl(SourceSet ss, Source s, String c) {
+  public SourceBinaryPairImpl(SourceSet ss, Source s, String c, boolean executable, boolean sharedLibrary) {
     this.cpp = ss.getCpp();
     this.args = ss.getArgs();
     this.macros = ss.getMacros();
     this.source = s;
     this.componentName = c;
+    this.executable = executable;
+    this.sharedLibrary = sharedLibrary;
   }
 
   public Source source;
@@ -20,6 +22,8 @@ public class SourceBinaryPairImpl implements SourceBinaryPair, Serializable {
   public boolean cpp;
   public Set<String> args;
   public Set<String> macros;
+  public boolean sharedLibrary;
+  public boolean executable;
 
   @Override
   public boolean equals(Object o) {
@@ -62,5 +66,15 @@ public class SourceBinaryPairImpl implements SourceBinaryPair, Serializable {
   @Override
   public Set<String> getMacros() {
     return macros;
+  }
+
+  @Override
+  public boolean isSharedLibrary() {
+    return sharedLibrary;
+  }
+
+  @Override
+  public boolean isExecutable() {
+    return executable;
   }
 }

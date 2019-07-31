@@ -279,8 +279,8 @@ public class ToolChainGenerator {
         BinaryObject bin = binaries.get(i);
         tc.getNameBinaryMap().put(bin.getComponentName(), i);
         for(SourceSet ss : bin.getSourceSets()) {
-          tc.getSourceBinaries().add(new SourceBinaryPairImpl(ss, ss.getSource(), bin.getComponentName()));
-          tc.getSourceBinaries().add(new SourceBinaryPairImpl(ss, ss.getExportedHeaders(), bin.getComponentName()));
+          tc.getSourceBinaries().add(new SourceBinaryPairImpl(ss, ss.getSource(), bin.getComponentName(), bin.isExecutable(), bin.isSharedLibrary()));
+          tc.getSourceBinaries().add(new SourceBinaryPairImpl(ss, ss.getExportedHeaders(), bin.getComponentName(), bin.isExecutable(), bin.isSharedLibrary()));
         }
       }
     }
