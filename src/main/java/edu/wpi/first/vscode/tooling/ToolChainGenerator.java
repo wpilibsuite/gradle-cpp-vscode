@@ -167,6 +167,8 @@ public class ToolChainGenerator {
       tci.architecture = bin.getTargetPlatform().getArchitecture().getName();
       tci.operatingSystem = bin.getTargetPlatform().getOperatingSystem().getName();
 
+      tci.name = bin.getTargetPlatform().getName();
+
       boolean added = toolChains.add(tci);
 
       ToolChains tc = tci;
@@ -178,8 +180,6 @@ public class ToolChainGenerator {
           }
         }
       } else {
-        tci.name = bin.getTargetPlatform().getName();
-
         CommandLineToolConfigurationInternal cppInternal = null;
         CommandLineToolConfigurationInternal cInternal = null;
 

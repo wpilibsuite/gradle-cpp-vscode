@@ -45,12 +45,12 @@ public class ToolChainsImpl implements ToolChains, Serializable {
     ToolChains tc = (ToolChains) o;
 
     return tc.getArchitecture().equals(architecture) && tc.getOperatingSystem().equals(operatingSystem)
-        && tc.getFlavor().equals(flavor) && tc.getBuildType().equals(buildType);
+        && tc.getFlavor().equals(flavor) && tc.getBuildType().equals(buildType) && tc.getName().equals(name);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(architecture, operatingSystem, flavor, buildType);
+    return Objects.hash(architecture, operatingSystem, flavor, buildType, name);
   }
 
   @Override
