@@ -91,9 +91,9 @@ public class ToolChainGenerator {
 
           for (Map.Entry<String, String> macro : bin.getCppCompiler().getMacros().entrySet()) {
             if (macro.getValue() == null) {
-              s.getMacros().add("-D" + macro.getKey());
+              s.getMacros().add(macro.getKey());
             } else {
-              s.getMacros().add("-D" + macro.getKey() + "=" + macro.getValue());
+              s.getMacros().add(macro.getKey() + "=" + macro.getValue());
             }
           }
 
@@ -103,9 +103,9 @@ public class ToolChainGenerator {
             s.getArgs().addAll(bin.getCppCompiler().getArgs());
             for (Map.Entry<String, String> macro : bin.getCppCompiler().getMacros().entrySet()) {
               if (macro.getValue() == null) {
-                s.getMacros().add("-D" + macro.getKey());
+                s.getMacros().add(macro.getKey());
               } else {
-                s.getMacros().add("-D" + macro.getKey() + "=" + macro.getValue());
+                s.getMacros().add(macro.getKey() + "=" + macro.getValue());
               }
             }
             s.cpp = true;
@@ -113,9 +113,9 @@ public class ToolChainGenerator {
             s.getArgs().addAll(bin.getcCompiler().getArgs());
             for (Map.Entry<String, String> macro : bin.getcCompiler().getMacros().entrySet()) {
               if (macro.getValue() == null) {
-                s.getMacros().add("-D" + macro.getKey());
+                s.getMacros().add(macro.getKey());
               } else {
-                s.getMacros().add("-D" + macro.getKey() + "=" + macro.getValue());
+                s.getMacros().add(macro.getKey() + "=" + macro.getValue());
               }
             }
             s.cpp = false;
