@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'edu.wpi.first'
-version '0.9.6'
+version '0.10.0'
 
 if (project.hasProperty('publishVersion')) {
     version = project.publishVersion
@@ -25,12 +25,12 @@ compileJava {
 }
 
 dependencies {
-    compile 'com.google.code.gson:gson:2.2.4'
+    api 'com.google.code.gson:gson:2.8.6'
 
-    testCompile('org.spockframework:spock-core:1.2-groovy-2.5') {
+    testImplementation('org.spockframework:spock-core:1.2-groovy-2.5') {
         exclude group: 'org.codehaus.groovy'
     }
-    testCompile gradleTestKit()
+    testImplementation gradleTestKit()
 }
 
 
@@ -52,5 +52,5 @@ gradlePlugin {
 }
 
 wrapper {
-    gradleVersion = '5.4.1'
+    gradleVersion = '6.0'
 }

@@ -29,12 +29,16 @@ import edu.wpi.first.vscode.tooling.models.SourceSet;
 import edu.wpi.first.vscode.tooling.models.ToolChains;
 
 public class CompileCommandsConfigurationTask extends DefaultTask {
-  @OutputDirectory
-  public DirectoryProperty configDirectory;
+  private DirectoryProperty configDirectory;
 
   @Inject
   public CompileCommandsConfigurationTask(ObjectFactory factory) {
     configDirectory = factory.directoryProperty();
+  }
+
+  @OutputDirectory
+  public DirectoryProperty getConfigDirectory() {
+    return configDirectory;
   }
 
   @TaskAction

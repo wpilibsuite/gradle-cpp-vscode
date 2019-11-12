@@ -20,12 +20,16 @@ import edu.wpi.first.vscode.tooling.ToolChainGenerator;
 import edu.wpi.first.vscode.tooling.models.ToolChains;
 
 public class VsCodeConfigurationTask extends DefaultTask {
-  @OutputFile
-  public RegularFileProperty configFile;
+  private RegularFileProperty configFile;
 
   @Inject
   public VsCodeConfigurationTask(ObjectFactory factory) {
     configFile = factory.fileProperty();
+  }
+
+  @OutputFile
+  public RegularFileProperty getConfigFile() {
+    return configFile;
   }
 
   @TaskAction
