@@ -13,6 +13,7 @@ import com.google.gson.GsonBuilder;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
@@ -32,9 +33,14 @@ public class VsCodeConfigurationTask extends DefaultTask {
     return configFile;
   }
 
+  @Input
+  public Set<ToolChains> getToolChains() {
+    return ToolChainGenerator.generateToolChains(getProject());
+  }
+
   @TaskAction
   public void generate() {
-    Set<ToolChains> toolChains = ToolChainGenerator.generateToolChains(getProject());
+    Set<ToolChains> toolChains = getToolChains();
     VsCodeConfigurationExtension ext = getProject().getExtensions().getByType(VsCodeConfigurationExtension.class);
 
     GsonBuilder builder = new GsonBuilder().disableHtmlEscaping();

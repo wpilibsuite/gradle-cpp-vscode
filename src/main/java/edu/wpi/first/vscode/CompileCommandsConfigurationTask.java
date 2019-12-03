@@ -17,6 +17,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 
@@ -41,9 +42,14 @@ public class CompileCommandsConfigurationTask extends DefaultTask {
     return configDirectory;
   }
 
+  @Input
+  public Set<ToolChains> getToolChains() {
+    return ToolChainGenerator.generateToolChains(getProject());
+  }
+
   @TaskAction
   public void generate() {
-    Set<ToolChains> toolChains = ToolChainGenerator.generateToolChains(getProject());
+    Set<ToolChains> toolChains = getToolChains();
 
     VsCodeConfigurationExtension ext = getProject().getExtensions().getByType(VsCodeConfigurationExtension.class);
 
