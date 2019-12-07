@@ -21,6 +21,8 @@ public interface ToolChains {
   Set<String> getSystemCArgs();
 
   Set<String> getAllLibFiles();
+  Set<String> getAllLibSources();
+  Set<String> getAllLibHeaders();
 
   List<BinaryObject> getBinaries();
 

@@ -268,6 +268,8 @@ public class ToolChainGenerator {
 
       tc.getAllLibFiles().addAll(bo.libHeaders);
       tc.getAllLibFiles().addAll(libSources);
+      tc.getAllLibHeaders().addAll(bo.libHeaders);
+      tc.getAllLibSources().addAll(libSources);
       tc.getBinaries().add(bo);
 
     }

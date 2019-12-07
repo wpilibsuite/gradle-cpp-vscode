@@ -27,6 +27,8 @@ public class ToolChainsImpl implements ToolChains, Serializable {
   public Set<String> systemCArgs = new LinkedHashSet<>();
 
   public Set<String> allLibFiles = new LinkedHashSet<>();
+  public Set<String> allLibSources = new LinkedHashSet<>();
+  public Set<String> allLibHeaders = new LinkedHashSet<>();
 
   public List<BinaryObject> binaries = new ArrayList<>();
 
@@ -116,6 +118,16 @@ public class ToolChainsImpl implements ToolChains, Serializable {
   @Override
   public Set<String> getAllLibFiles() {
     return allLibFiles;
+  }
+
+  @Override
+  public Set<String> getAllLibHeaders() {
+    return allLibHeaders;
+  }
+
+  @Override
+  public Set<String> getAllLibSources() {
+    return allLibSources;
   }
 
   @Override
