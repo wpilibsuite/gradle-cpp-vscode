@@ -2,21 +2,20 @@ package edu.wpi.first.gradlerio
 
 import org.gradle.testkit.runner.GradleRunner
 import static org.gradle.testkit.runner.TaskOutcome.*
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
+import spock.lang.TempDir
 import spock.lang.Specification
 
 class VsCodeInitializationTest extends Specification {
-  @Rule TemporaryFolder testProjectDir = new TemporaryFolder()
+  @TempDir File testProjectDir
   File buildFile1
   File buildFile2
   File settingsFile
 
   def setup() {
-    settingsFile = testProjectDir.newFile('settings.gradle')
-    buildFile1 = testProjectDir.newFile('build.gradle')
-    testProjectDir.newFolder('sub')
-    buildFile2 = testProjectDir.newFile('sub/build.gradle')
+    settingsFile = new File(testProjectDir, 'settings.gradle')
+    buildFile1 = new File(testProjectDir, 'build.gradle')
+    new File(testProjectDir, 'sub').mkdirs()
+    buildFile2 = new File(testProjectDir, 'sub/build.gradle')
   }
 
   def "Root Project Initializes Correctly"() {
@@ -30,7 +29,7 @@ plugins {
     settingsFile << ""
     when:
     def result = GradleRunner.create()
-        .withProjectDir(testProjectDir.root)
+        .withProjectDir(testProjectDir)
         .withArguments('generateVsCodeConfig')
         .withPluginClasspath()
         .build()
@@ -49,7 +48,7 @@ plugins {
     settingsFile << "include 'sub'"
     when:
     def result = GradleRunner.create()
-        .withProjectDir(testProjectDir.root)
+        .withProjectDir(testProjectDir)
         .withArguments('generateVsCodeConfig')
         .withPluginClasspath()
         .build()
@@ -77,13 +76,13 @@ model {
     settingsFile << "include 'sub'"
     when:
     def result = GradleRunner.create()
-        .withProjectDir(testProjectDir.root)
+        .withProjectDir(testProjectDir)
         .withArguments('generateVsCodeConfig')
         .withPluginClasspath()
         .build()
     then:
     result.task(':generateVsCodeConfig').outcome == SUCCESS
-    def root = testProjectDir.root
+    def root = testProjectDir
     def configFile = new File(root.toString(), 'build/vscodeconfig.json')
     assert configFile.exists()
   }
@@ -107,13 +106,13 @@ model {
     settingsFile << ""
     when:
     def result = GradleRunner.create()
-        .withProjectDir(testProjectDir.root)
+        .withProjectDir(testProjectDir)
         .withArguments('generateVsCodeConfig')
         .withPluginClasspath()
         .build()
     then:
     result.task(':generateVsCodeConfig').outcome == SUCCESS
-    def root = testProjectDir.root
+    def root = testProjectDir
     def configFile = new File(root.toString(), 'build/vscodeconfig.json')
     assert configFile.exists()
   }
@@ -150,13 +149,13 @@ model {
     settingsFile << "include 'sub'"
     when:
     def result = GradleRunner.create()
-        .withProjectDir(testProjectDir.root)
+        .withProjectDir(testProjectDir)
         .withArguments('generateVsCodeConfig')
         .withPluginClasspath()
         .build()
     then:
     result.task(':generateVsCodeConfig').outcome == SUCCESS
-    def root = testProjectDir.root
+    def root = testProjectDir
     def configFile = new File(root.toString(), 'build/vscodeconfig.json')
     assert configFile.exists()
     println configFile.text
