@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'edu.wpi.first'
-version '0.25.0'
+version '1.0.0'
 
 if (project.hasProperty('publishVersion')) {
     version = project.publishVersion
@@ -55,5 +55,5 @@ gradlePlugin {
 }
 
 wrapper {
-    gradleVersion = '7.0'
+    gradleVersion = '7.0.2'
 }
