@@ -1,10 +1,7 @@
 package edu.wpi.first.vscode.tooling;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +9,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.gradle.api.Project;
-import org.gradle.api.file.FileCollection;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.c.CSourceSet;
@@ -37,6 +33,7 @@ import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
 
 import edu.wpi.first.vscode.VsCodeConfigurationExtension;
+import edu.wpi.first.vscode.dependencies.SourceContainingNativeDependencySet;
 import edu.wpi.first.vscode.tooling.models.BinaryObject;
 import edu.wpi.first.vscode.tooling.models.BinaryObjectImpl;
 import edu.wpi.first.vscode.tooling.models.SourceBinaryPairImpl;
@@ -59,8 +56,6 @@ public class ToolChainGenerator {
       return ext._toolChainsStore;
     }
     Set<ToolChains> toolChains = new LinkedHashSet<>();
-
-    Map<Class<? extends NativeDependencySet>, Method> depClasses = new HashMap<>();
 
     for (NativeBinarySpec bin : ext._binaries) {
       if (!bin.isBuildable()) {
@@ -128,28 +123,10 @@ public class ToolChainGenerator {
         for (File f : dep.getIncludeRoots()) {
           bo.getLibHeaders().add(f.toString() + File.separator);
         }
-        Class<? extends NativeDependencySet> cls = dep.getClass();
-        Method sourceMethod = null;
-        if (depClasses.containsKey(cls)) {
-          sourceMethod = depClasses.get(cls);
-        } else {
-          try {
-            sourceMethod = cls.getDeclaredMethod("getSourceFiles");
-          } catch (NoSuchMethodException | SecurityException e) {
-            sourceMethod = null;
-          }
-          depClasses.put(cls, sourceMethod);
-        }
-        if (sourceMethod != null) {
-          try {
-            Object rootsObject = sourceMethod.invoke(dep);
-            if (rootsObject instanceof FileCollection) {
-              for (File f : (FileCollection)rootsObject) {
-                libSources.add(f.toString() + File.separator);
-              }
-            }
-          } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            e.printStackTrace();
+        if (dep instanceof SourceContainingNativeDependencySet) {
+          SourceContainingNativeDependencySet sourceDep = (SourceContainingNativeDependencySet)dep;
+          for (File f : sourceDep.getSourceFiles()) {
+            libSources.add(f.toString() + File.separator);
           }
         }
       }
