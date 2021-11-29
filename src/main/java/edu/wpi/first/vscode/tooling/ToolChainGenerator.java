@@ -81,8 +81,8 @@ public class ToolChainGenerator {
 
           s.getExportedHeaders().setSrcDirs(hSet.getExportedHeaders().getSrcDirs().stream().map(x -> normalizeDriveLetter(x.toString()) + File.separator).collect(Collectors.toSet()));
 
-          s.getExportedHeaders().getIncludes().addAll(hSet.getSource().getIncludes());
-          s.getExportedHeaders().getExcludes().addAll(hSet.getSource().getExcludes());
+          s.getExportedHeaders().getIncludes().addAll(hSet.getExportedHeaders().getIncludes());
+          s.getExportedHeaders().getExcludes().addAll(hSet.getExportedHeaders().getExcludes());
 
           for (Map.Entry<String, String> macro : bin.getCppCompiler().getMacros().entrySet()) {
             if (macro.getValue() == null) {
