@@ -40,7 +40,7 @@ tasks.withType(Test).configureEach {
 pluginBundle {
     website = 'https://github.com/wpilibsuite/gradle-cpp-vscode'
     vcsUrl = 'https://github.com/wpilibsuite/gradle-cpp-vscode'
-    description = 'This plugin provides VS Code support for old stylde gradle projects.'
+    description = 'This plugin provides VS Code support for old style gradle projects.'
     tags = ['groovy', 'vscode', 'cpp', 'maven', 'frc', 'wpilib']
 }
 
