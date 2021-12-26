@@ -125,7 +125,7 @@ public class ToolChainGenerator {
         }
         if (dep instanceof SourceContainingNativeDependencySet) {
           SourceContainingNativeDependencySet sourceDep = (SourceContainingNativeDependencySet)dep;
-          for (File f : sourceDep.getSourceFiles()) {
+          for (File f : sourceDep.getSourceRoots()) {
             libSources.add(f.toString() + File.separator);
           }
         }
