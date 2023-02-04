@@ -85,8 +85,8 @@ public class CompileCommandsConfigurationTask extends DefaultTask {
       }
 
       String json = gson.toJson(compileCommands);
-      json.replaceAll("\\\\", "/"); // for Windows since clangd doesn't
-                                    // support backslash dir separator
+      json = json.replaceAll("\\\\", "/"); // for Windows since clangd doesn't
+                                           // support backslash dir separator
 
       File fileDir = new File(dir, tc.getName());
       fileDir.mkdirs();
