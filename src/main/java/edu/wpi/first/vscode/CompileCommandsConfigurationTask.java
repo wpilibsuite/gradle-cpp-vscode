@@ -10,9 +10,6 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileTree;
@@ -20,6 +17,10 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.os.OperatingSystem;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import edu.wpi.first.vscode.tooling.ToolChainGenerator;
 import edu.wpi.first.vscode.tooling.models.BinaryObject;
@@ -85,8 +86,10 @@ public class CompileCommandsConfigurationTask extends DefaultTask {
       }
 
       String json = gson.toJson(compileCommands);
-      json = json.replaceAll("\\\\", "/"); // for Windows since clangd doesn't
-                                           // support backslash dir separator
+      if (OperatingSystem.current().isWindows()) {
+        json = json.replaceAll("\\\\", "/"); // for Windows since clangd doesn't
+                                             // support backslash dir separator
+      }
 
       File fileDir = new File(dir, tc.getName());
       fileDir.mkdirs();
