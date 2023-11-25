@@ -1,6 +1,6 @@
 # Gradle C++ VS Code
 
-[![Build status](https://ci.appveyor.com/api/projects/status/70287abkmu24tgou/branch/master?svg=true)](https://ci.appveyor.com/project/ThadHouse/gradle-cpp-vscode/branch/master)
+[![CI](https://github.com/wpilibsuite/gradle-cpp-vscode/actions/workflows/main.yml/badge.svg)](https://github.com/wpilibsuite/gradle-cpp-vscode/actions/workflows/main.yml)
 
 This is a Gradle plugin and VS Code extension to enable C++ intellisense for old style C++ gradle projects. New style projects are currently not supported, but could be added in the future.
 
