@@ -6,7 +6,9 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 
-import edu.wpi.first.vscode.args.CompileCommandsTask;
+import edu.wpi.first.vscode.compilecommands.BinaryCompileCommandsTask;
+import edu.wpi.first.vscode.compilecommands.CompileCommand;
+import edu.wpi.first.vscode.compilecommands.TargetedCompileCommandsTask;
 
 public class GradleVsCode implements Plugin<Project> {
 
@@ -28,11 +30,13 @@ public class GradleVsCode implements Plugin<Project> {
           task.getConfigFile().set(rootProject.getLayout().getBuildDirectory().file("vscodeconfig.json"));
         });
 
-        rootProject.getTasks().register("generateCompileCommands", CompileCommandsConfigurationTask.class, task -> {
-          task.dependsOn(project.getTasks().withType(CompileCommandsTask.class));
+        rootProject.getTasks().register("generateCompileCommands", TargetedCompileCommandsTask.class, task -> {
+          task.dependsOn(project.getTasks().withType(BinaryCompileCommandsTask.class));
           task.setGroup("CompileCommands");
           task.setDescription("Generate compile_commands.json");
-          task.getConfigDirectory().set(rootProject.getLayout().getBuildDirectory().dir("compile_commands"));
+          task.getTargetedCompileCommands().set(rootProject.getLayout().getBuildDirectory().dir(CompileCommand.TARGETED_COMPILE_COMMANDS_FOLDER));
+          task.getBinaryCompileCommands().set(rootProject.getLayout().getBuildDirectory().dir(CompileCommand.BINARY_COMPILE_COMMANDS_FOLDER));
+
         });
         rootProject.getExtensions().create("vscodeConfiguration", VsCodeConfigurationExtension.class);
         rootProject.getExtensions().getExtraProperties().set("VsCodeConfigurationTask", VsCodeConfigurationTask.class);

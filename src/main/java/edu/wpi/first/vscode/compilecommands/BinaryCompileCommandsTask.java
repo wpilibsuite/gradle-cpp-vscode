@@ -1,6 +1,5 @@
-package edu.wpi.first.vscode.args;
+package edu.wpi.first.vscode.compilecommands;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,23 +14,19 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 @UntrackedTask(because = "Always want to rerun")
-public abstract class CompileCommandsTask extends DefaultTask {
-    public static class CompileCommand {
-        public String directory;
-        public String file;
-        public List<String> arguments;
-        public String output;
-
-    }
-
+public abstract class BinaryCompileCommandsTask extends DefaultTask {
 
     @Internal
     public abstract Property<AbstractNativeSourceCompileTask> getCompileTask();
+
+    @Internal
+    public abstract Property<CompilerOutputFileNamingSchemeFactory> getOutputNamingFactory();
 
     @OutputDirectory
     public abstract DirectoryProperty getOutputDirectory();
@@ -39,25 +34,21 @@ public abstract class CompileCommandsTask extends DefaultTask {
     @TaskAction
     public void execute() throws IOException {
         AbstractNativeSourceCompileTask task = getCompileTask().get();
-        NativeCompileSpec spec = NativeCompileSpec.fromCompile(task);
+        NativeCompileSpec spec = NativeCompileSpec.fromCompile(task, getOutputNamingFactory().get());
 
-        File ccFile = getOutputDirectory().file("compile_commands.json").get().getAsFile();
-
-        try (BufferedWriter writer = Files.newBufferedWriter(ccFile.toPath())) {
-            writer.write("Hello World!");
-        }
+        File ccFile = getOutputDirectory().file(CompileCommand.COMPILE_COMMANDS_FILE_NAME).get().getAsFile();
 
         List<String> args = spec.getTransformer().transform(spec);
         List<CompileCommand> commands = new ArrayList<>();
 
         for (File f : task.getSource()) {
-            
             CompileCommand c = new CompileCommand();
             c.directory = getProject().getProjectDir().getAbsolutePath();
             c.file = f.getAbsolutePath();
             c.arguments = new ArrayList<>(args.size() + 1);
+            c.arguments.add(spec.getCompileTool().getAbsolutePath());
             c.arguments.addAll(args);
-            c.output = "hello";
+            c.output = spec.getNamingScheme().map(f).getAbsolutePath();
             commands.add(c);
         }
 
@@ -65,8 +56,9 @@ public abstract class CompileCommandsTask extends DefaultTask {
         builder.setPrettyPrinting();
         Gson gson = builder.create();
         String json = gson.toJson(commands);
-        try (BufferedWriter writer = Files.newBufferedWriter(ccFile.toPath())) {
-            writer.append(json);
-        }
+        Files.writeString(ccFile.toPath(), json);
+
+        File platformFile = getOutputDirectory().file(CompileCommand.TARGET_PLATFORM_FILE_NAME).get().getAsFile();
+        Files.writeString(platformFile.toPath(), spec.getTargetPlatform().getName());
     }
 }

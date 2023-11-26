@@ -1,10 +1,11 @@
-package edu.wpi.first.vscode.args;
+package edu.wpi.first.vscode.compilecommands;
+
+import static edu.wpi.first.vscode.compilecommands.EscapeUserArgs.escapeUserArg;
+import static edu.wpi.first.vscode.compilecommands.EscapeUserArgs.escapeUserArgs;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import static edu.wpi.first.vscode.args.EscapeUserArgs.escapeUserArg;
-import static edu.wpi.first.vscode.args.EscapeUserArgs.escapeUserArgs;
 
 public class VisualCppCompilerArgsTransformer implements ArgsTransformer {
     @Override

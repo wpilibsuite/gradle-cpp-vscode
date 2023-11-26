@@ -1,4 +1,4 @@
-package edu.wpi.first.vscode.args;
+package edu.wpi.first.vscode.compilecommands;
 
 import java.util.List;
 

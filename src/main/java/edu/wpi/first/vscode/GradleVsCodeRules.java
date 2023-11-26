@@ -10,6 +10,7 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
@@ -20,7 +21,8 @@ import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.process.internal.ExecActionFactory;
 
-import edu.wpi.first.vscode.args.CompileCommandsTask;
+import edu.wpi.first.vscode.compilecommands.BinaryCompileCommandsTask;
+import edu.wpi.first.vscode.compilecommands.CompileCommand;
 
 public class GradleVsCodeRules extends RuleSource {
   @Finalize
@@ -46,6 +48,8 @@ public class GradleVsCodeRules extends RuleSource {
   @Mutate
   void createVsCodeConfigTasks(ModelMap<Task> tasks, BinaryContainer bins, ProjectLayout projectLayout, ServiceRegistry serviceRegistry) {
 
+    CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = serviceRegistry.get(CompilerOutputFileNamingSchemeFactory.class);
+
     VisualStudioLocator locator = serviceRegistry.get(VisualStudioLocator.class);
     WindowsSdkLocator sdkLocator = serviceRegistry.get(WindowsSdkLocator.class);
     UcrtLocator ucrtLocator = serviceRegistry.get(UcrtLocator.class);
@@ -70,9 +74,10 @@ public class GradleVsCodeRules extends RuleSource {
 
       bin.getTasks().withType(AbstractNativeSourceCompileTask.class, task -> {
         String ccName = task.getName() + "CompileCommands";
-        project.getTasks().register(ccName, CompileCommandsTask.class, ccTask -> {
+        project.getTasks().register(ccName, BinaryCompileCommandsTask.class, ccTask -> {
           ccTask.getCompileTask().set(task);
-          ccTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir("CompileCommands/" + ccName));
+          ccTask.getOutputNamingFactory().set(compilerOutputFileNamingSchemeFactory);
+          ccTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(CompileCommand.BINARY_COMPILE_COMMANDS_FOLDER + "/" + ccName));
         });
       });
     }
