@@ -6,6 +6,8 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 
+import edu.wpi.first.vscode.args.CompileCommandsTask;
+
 public class GradleVsCode implements Plugin<Project> {
 
   public void apply(Project project) {
@@ -27,6 +29,7 @@ public class GradleVsCode implements Plugin<Project> {
         });
 
         rootProject.getTasks().register("generateCompileCommands", CompileCommandsConfigurationTask.class, task -> {
+          task.dependsOn(project.getTasks().withType(CompileCommandsTask.class));
           task.setGroup("CompileCommands");
           task.setDescription("Generate compile_commands.json");
           task.getConfigDirectory().set(rootProject.getLayout().getBuildDirectory().dir("compile_commands"));

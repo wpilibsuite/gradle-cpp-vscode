@@ -4,6 +4,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.ProjectLayout;
+import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
 import org.gradle.model.Finalize;
 import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
@@ -18,6 +19,8 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLocator;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.process.internal.ExecActionFactory;
+
+import edu.wpi.first.vscode.args.CompileCommandsTask;
 
 public class GradleVsCodeRules extends RuleSource {
   @Finalize
@@ -64,6 +67,14 @@ public class GradleVsCodeRules extends RuleSource {
       }
       NativeBinarySpec bin = (NativeBinarySpec)oBin;
       ext._binaries.add(bin);
+
+      bin.getTasks().withType(AbstractNativeSourceCompileTask.class, task -> {
+        String ccName = task.getName() + "CompileCommands";
+        project.getTasks().register(ccName, CompileCommandsTask.class, ccTask -> {
+          ccTask.getCompileTask().set(task);
+          ccTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir("CompileCommands/" + ccName));
+        });
+      });
     }
   }
 }
