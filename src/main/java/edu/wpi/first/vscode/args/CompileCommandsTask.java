@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
@@ -25,7 +24,9 @@ public abstract class CompileCommandsTask extends DefaultTask {
     public static class CompileCommand {
         public String directory;
         public String file;
-        public String command;
+        public List<String> arguments;
+        public String output;
+
     }
 
 
@@ -47,15 +48,16 @@ public abstract class CompileCommandsTask extends DefaultTask {
         }
 
         List<String> args = spec.getTransformer().transform(spec);
-        String argString = args.stream().map(x -> "\"" + x + "\"").collect(Collectors.joining(", "));
-
         List<CompileCommand> commands = new ArrayList<>();
 
         for (File f : task.getSource()) {
+            
             CompileCommand c = new CompileCommand();
             c.directory = getProject().getProjectDir().getAbsolutePath();
             c.file = f.getAbsolutePath();
-            c.command = argString + "\"" + f.getAbsolutePath() + "\"";
+            c.arguments = new ArrayList<>(args.size() + 1);
+            c.arguments.addAll(args);
+            c.output = "hello";
             commands.add(c);
         }
 
