@@ -1,5 +1,7 @@
 package edu.wpi.first.vscode.tooling.models;
 
+import org.gradle.internal.os.OperatingSystem;
+
 import java.io.File;
 import java.util.Set;
 
@@ -9,7 +11,11 @@ public class CompileCommandImpl implements CompileCommand {
   private final String file;
 
   public CompileCommandImpl(String rootDirectory, ToolChains tc, BinaryObject binary, SourceSet sourceSet, Source source, File file) {
-    this.directory = rootDirectory;
+    if (OperatingSystem.current().isWindows()) {
+      this.directory = rootDirectory.replace('\\', '/');
+    } else {
+      this.directory = rootDirectory;
+    }
 
     StringBuilder cmd = new StringBuilder();
     Set<String> compilerArgs;
@@ -17,11 +23,19 @@ public class CompileCommandImpl implements CompileCommand {
 
     cmd.append('"');
     if (sourceSet.getCpp()) {
-      cmd.append(tc.getCppPath());
+      if (OperatingSystem.current().isWindows()) {
+        cmd.append(tc.getCppPath().replace('\\', '/'));
+      } else {
+        cmd.append(tc.getCppPath());
+      }
       compilerArgs = tc.getSystemCppArgs();
       compilerMacros = tc.getSystemCppMacros();
     } else {
-      cmd.append(tc.getCPath());
+      if (OperatingSystem.current().isWindows()) {
+        cmd.append(tc.getCPath().replace('\\', '/'));
+      } else {
+        cmd.append(tc.getCPath());
+      }
       compilerArgs = tc.getSystemCArgs();
       compilerMacros = tc.getSystemCMacros();
     }
@@ -47,7 +61,11 @@ public class CompileCommandImpl implements CompileCommand {
     for (String header : binary.getLibHeaders()) {
       cmd.append('"');
       cmd.append("-I");
-      cmd.append(header);
+      if (OperatingSystem.current().isWindows()) {
+        cmd.append(header.replace('\\', '/'));
+      } else {
+        cmd.append(header);
+      }
       cmd.append('"');
       cmd.append(' ');
     }
@@ -55,7 +73,11 @@ public class CompileCommandImpl implements CompileCommand {
     for (String header : sourceSet.getExportedHeaders().getSrcDirs()) {
       cmd.append('"');
       cmd.append("-I");
-      cmd.append(header);
+      if (OperatingSystem.current().isWindows()) {
+        cmd.append(header.replace('\\', '/'));
+      } else {
+        cmd.append(header);
+      }
       cmd.append('"');
       cmd.append(' ');
     }
@@ -78,11 +100,19 @@ public class CompileCommandImpl implements CompileCommand {
 
     cmd.append("-c "); // Don't link.
     cmd.append('"');
-    cmd.append(file.getAbsolutePath());
+    if (OperatingSystem.current().isWindows()) {
+      cmd.append(file.getAbsolutePath().replace('\\', '/'));
+    } else {
+      cmd.append(file.getAbsolutePath());
+    }
     cmd.append('"');
 
     this.command = cmd.toString();
-    this.file = file.getAbsolutePath();
+    if (OperatingSystem.current().isWindows()) {
+      this.file = file.getAbsolutePath().replace('\\', '/');
+    } else {
+      this.file = file.getAbsolutePath();
+    }
   }
 
   @Override
