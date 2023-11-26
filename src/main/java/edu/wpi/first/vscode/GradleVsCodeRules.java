@@ -77,6 +77,7 @@ public class GradleVsCodeRules extends RuleSource {
         project.getTasks().register(ccName, BinaryCompileCommandsTask.class, ccTask -> {
           ccTask.getCompileTask().set(task);
           ccTask.getOutputNamingFactory().set(compilerOutputFileNamingSchemeFactory);
+          ccTask.getBuildType().set(bin.getBuildType());
           ccTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(CompileCommand.BINARY_COMPILE_COMMANDS_FOLDER + "/" + ccName));
         });
       });

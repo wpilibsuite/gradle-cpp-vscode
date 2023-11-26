@@ -14,6 +14,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
+import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 
 import com.google.gson.Gson;
@@ -28,13 +29,16 @@ public abstract class BinaryCompileCommandsTask extends DefaultTask {
     @Internal
     public abstract Property<CompilerOutputFileNamingSchemeFactory> getOutputNamingFactory();
 
+    @Internal
+    public abstract Property<BuildType> getBuildType();
+
     @OutputDirectory
     public abstract DirectoryProperty getOutputDirectory();
 
     @TaskAction
     public void execute() throws IOException {
         AbstractNativeSourceCompileTask task = getCompileTask().get();
-        NativeCompileSpec spec = NativeCompileSpec.fromCompile(task, getOutputNamingFactory().get());
+        NativeCompileSpec spec = NativeCompileSpec.fromCompile(task, getOutputNamingFactory().get(), getBuildType().get());
 
         File ccFile = getOutputDirectory().file(CompileCommand.COMPILE_COMMANDS_FILE_NAME).get().getAsFile();
 
@@ -59,6 +63,6 @@ public abstract class BinaryCompileCommandsTask extends DefaultTask {
         Files.writeString(ccFile.toPath(), json);
 
         File platformFile = getOutputDirectory().file(CompileCommand.TARGET_PLATFORM_FILE_NAME).get().getAsFile();
-        Files.writeString(platformFile.toPath(), spec.getTargetPlatform().getName());
+        Files.writeString(platformFile.toPath(), spec.getTargetPlatform().getName() + spec.getBuildType().getName());
     }
 }

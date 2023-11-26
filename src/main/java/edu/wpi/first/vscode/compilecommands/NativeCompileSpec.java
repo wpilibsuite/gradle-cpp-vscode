@@ -10,6 +10,7 @@ import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
 import org.gradle.language.objectivec.tasks.ObjectiveCCompile;
 import org.gradle.language.objectivecpp.tasks.ObjectiveCppCompile;
+import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.platform.NativePlatform;
@@ -30,6 +31,15 @@ public class NativeCompileSpec {
     private Map<String, String> macros;
     private final List<String> args = new ArrayList<>();
     private final List<String> systemArgs = new ArrayList<>();
+    private BuildType buildType;
+
+    public BuildType getBuildType() {
+        return buildType;
+    }
+
+    public void setBuildType(BuildType buildType) {
+        this.buildType = buildType;
+    }
 
     public String getLanguage() {
         return language;
@@ -145,7 +155,7 @@ public class NativeCompileSpec {
     }
 
     public static NativeCompileSpec fromCompile(AbstractNativeSourceCompileTask task,
-            CompilerOutputFileNamingSchemeFactory outputNamingFactory) {
+            CompilerOutputFileNamingSchemeFactory outputNamingFactory, BuildType buildType) {
         NativeCompileSpec spec = new NativeCompileSpec();
         spec.setTargetPlatform(task.getTargetPlatform().get());
         spec.include(task.getIncludes());
@@ -155,6 +165,7 @@ public class NativeCompileSpec {
         spec.setPositionIndependentCode(task.isPositionIndependentCode());
         spec.setDebuggable(task.isDebuggable());
         spec.setOptimized(task.isOptimized());
+        spec.setBuildType(buildType);
 
         if (task.getToolChain().get() instanceof VisualCpp) {
             spec.setTransformer(new VisualCppCompilerArgsTransformer());
