@@ -10,7 +10,6 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
@@ -48,8 +47,6 @@ public class GradleVsCodeRules extends RuleSource {
   @Mutate
   void createVsCodeConfigTasks(ModelMap<Task> tasks, BinaryContainer bins, ProjectLayout projectLayout, ServiceRegistry serviceRegistry) {
 
-    CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = serviceRegistry.get(CompilerOutputFileNamingSchemeFactory.class);
-
     VisualStudioLocator locator = serviceRegistry.get(VisualStudioLocator.class);
     WindowsSdkLocator sdkLocator = serviceRegistry.get(WindowsSdkLocator.class);
     UcrtLocator ucrtLocator = serviceRegistry.get(UcrtLocator.class);
@@ -76,7 +73,6 @@ public class GradleVsCodeRules extends RuleSource {
         String ccName = task.getName() + "CompileCommands";
         project.getTasks().register(ccName, BinaryCompileCommandsTask.class, ccTask -> {
           ccTask.getCompileTask().set(task);
-          ccTask.getOutputNamingFactory().set(compilerOutputFileNamingSchemeFactory);
           ccTask.getBuildType().set(bin.getBuildType());
           ccTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(CompileCommand.BINARY_COMPILE_COMMANDS_FOLDER + "/" + ccName));
         });

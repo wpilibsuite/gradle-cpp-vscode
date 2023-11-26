@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.c.tasks.CCompile;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
@@ -154,8 +155,7 @@ public class NativeCompileSpec {
         return namingScheme;
     }
 
-    public static NativeCompileSpec fromCompile(AbstractNativeSourceCompileTask task,
-            CompilerOutputFileNamingSchemeFactory outputNamingFactory, BuildType buildType) {
+    public static NativeCompileSpec fromCompile(AbstractNativeSourceCompileTask task, BuildType buildType) {
         NativeCompileSpec spec = new NativeCompileSpec();
         spec.setTargetPlatform(task.getTargetPlatform().get());
         spec.include(task.getIncludes());
@@ -166,6 +166,10 @@ public class NativeCompileSpec {
         spec.setDebuggable(task.isDebuggable());
         spec.setOptimized(task.isOptimized());
         spec.setBuildType(buildType);
+
+        ProjectInternal pi = (ProjectInternal) task.getProject();
+        CompilerOutputFileNamingSchemeFactory outputNamingFactory = pi.getServices()
+                .get(CompilerOutputFileNamingSchemeFactory.class);
 
         if (task.getToolChain().get() instanceof VisualCpp) {
             spec.setTransformer(new VisualCppCompilerArgsTransformer());

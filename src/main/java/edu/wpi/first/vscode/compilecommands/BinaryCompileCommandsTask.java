@@ -15,7 +15,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
 import org.gradle.nativeplatform.BuildType;
-import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -27,9 +26,6 @@ public abstract class BinaryCompileCommandsTask extends DefaultTask {
     public abstract Property<AbstractNativeSourceCompileTask> getCompileTask();
 
     @Internal
-    public abstract Property<CompilerOutputFileNamingSchemeFactory> getOutputNamingFactory();
-
-    @Internal
     public abstract Property<BuildType> getBuildType();
 
     @OutputDirectory
@@ -38,7 +34,7 @@ public abstract class BinaryCompileCommandsTask extends DefaultTask {
     @TaskAction
     public void execute() throws IOException {
         AbstractNativeSourceCompileTask task = getCompileTask().get();
-        NativeCompileSpec spec = NativeCompileSpec.fromCompile(task, getOutputNamingFactory().get(), getBuildType().get());
+        NativeCompileSpec spec = NativeCompileSpec.fromCompile(task, getBuildType().get());
 
         File ccFile = getOutputDirectory().file(CompileCommand.COMPILE_COMMANDS_FILE_NAME).get().getAsFile();
 
