@@ -72,6 +72,10 @@ public class GradleVsCodeRules extends RuleSource {
       NativeBinarySpec bin = (NativeBinarySpec)oBin;
       ext._binaries.add(bin);
 
+      if (!bin.isBuildable()) {
+        continue;
+      }
+
       bin.getTasks().withType(AbstractNativeSourceCompileTask.class, compileTask -> {
 
         TaskProvider<TargetedCompileCommandsTask> targetedTask;
