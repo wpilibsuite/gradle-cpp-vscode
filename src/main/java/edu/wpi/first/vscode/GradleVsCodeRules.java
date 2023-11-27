@@ -2,8 +2,11 @@ package edu.wpi.first.vscode;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.UnknownTaskException;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.ProjectLayout;
+import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
 import org.gradle.model.Finalize;
 import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
@@ -18,6 +21,10 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLocator;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.process.internal.ExecActionFactory;
+
+import edu.wpi.first.vscode.compilecommands.BinaryCompileCommandsTask;
+import edu.wpi.first.vscode.compilecommands.CompileCommand;
+import edu.wpi.first.vscode.compilecommands.TargetedCompileCommandsTask;
 
 public class GradleVsCodeRules extends RuleSource {
   @Finalize
@@ -64,6 +71,37 @@ public class GradleVsCodeRules extends RuleSource {
       }
       NativeBinarySpec bin = (NativeBinarySpec)oBin;
       ext._binaries.add(bin);
+
+      if (!bin.isBuildable()) {
+        continue;
+      }
+
+      bin.getTasks().withType(AbstractNativeSourceCompileTask.class, compileTask -> {
+
+        TaskProvider<TargetedCompileCommandsTask> targetedTask;
+        try {
+          targetedTask = project.getRootProject().getTasks().named("generateCompileCommands", TargetedCompileCommandsTask.class);
+        } catch (UnknownTaskException e) {
+          targetedTask = project.getRootProject().getTasks().register("generateCompileCommands", TargetedCompileCommandsTask.class, task -> {
+            task.setGroup("CompileCommands");
+            task.setDescription("Generate compile_commands.json");
+            task.getTargetedCompileCommands().set(rootProject.getLayout().getBuildDirectory().dir(CompileCommand.TARGETED_COMPILE_COMMANDS_FOLDER));
+          });
+        }
+
+        String ccName = compileTask.getName() + "CompileCommands";
+        TaskProvider<BinaryCompileCommandsTask> binaryTask = project.getTasks().register(ccName, BinaryCompileCommandsTask.class, ccTask -> {
+          ccTask.getCompileTask().set(compileTask);
+          ccTask.getBuildType().set(bin.getBuildType());
+          ccTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(CompileCommand.BINARY_COMPILE_COMMANDS_FOLDER + "/" + ccName));
+        });
+
+        targetedTask.configure(tt -> {
+          BinaryCompileCommandsTask bt = binaryTask.get();
+          tt.dependsOn(bt);
+          tt.getBinaryCompileDirectories().add(bt.getOutputDirectory());
+        });
+      });
     }
   }
 }
