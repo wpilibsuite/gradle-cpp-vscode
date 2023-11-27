@@ -13,8 +13,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
@@ -29,8 +31,8 @@ public abstract class TargetedCompileCommandsTask extends DefaultTask {
   @OutputDirectory
   public abstract DirectoryProperty getTargetedCompileCommands();
 
-  @InputDirectory
-  public abstract DirectoryProperty getBinaryCompileCommands();
+  @Internal
+  public abstract ListProperty<Directory> getBinaryCompileDirectories(); 
 
   @TaskAction
   public void generate() throws IOException {
@@ -39,9 +41,9 @@ public abstract class TargetedCompileCommandsTask extends DefaultTask {
 
     Map<String, List<CompileCommand>> targetedCommands = new HashMap<>();
 
-    for (File binaryDirectory : getBinaryCompileCommands().get().getAsFile().listFiles()) {
-      File targetPlatformFile = new File(binaryDirectory, CompileCommand.TARGET_PLATFORM_FILE_NAME);
-      File compileCommandsfile = new File(binaryDirectory, CompileCommand.COMPILE_COMMANDS_FILE_NAME);
+    for (Directory binaryDirectory : getBinaryCompileDirectories().get()) {
+      File targetPlatformFile = binaryDirectory.file(CompileCommand.TARGET_PLATFORM_FILE_NAME).getAsFile();
+      File compileCommandsfile = binaryDirectory.file(CompileCommand.COMPILE_COMMANDS_FILE_NAME).getAsFile();
       String targetPlatform = Files.readString(targetPlatformFile.toPath());
 
       try (BufferedReader reader = Files.newBufferedReader(compileCommandsfile.toPath())) {
