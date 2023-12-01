@@ -45,10 +45,13 @@ public abstract class BinaryCompileCommandsTask extends DefaultTask {
             CompileCommand c = new CompileCommand();
             c.directory = getProject().getProjectDir().getAbsolutePath();
             c.file = f.getAbsolutePath();
+            c.output = spec.getNamingScheme().map(f).getAbsolutePath();
             c.arguments = new ArrayList<>(args.size() + 1);
             c.arguments.add(spec.getCompileTool().getAbsolutePath());
             c.arguments.addAll(args);
-            c.output = spec.getNamingScheme().map(f).getAbsolutePath();
+            c.arguments.add("-o");
+            c.arguments.add(c.output);
+            c.arguments.add(c.file);
             commands.add(c);
         }
 
