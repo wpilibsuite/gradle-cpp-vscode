@@ -1,0 +1,14 @@
+package org.wpilib.vscode.tooling.models;
+
+import java.util.Set;
+
+public interface SourceBinaryPair {
+  Source getSource();
+  String getComponentName();
+  boolean getCpp();
+  Set<String> getArgs();
+  Set<String> getMacros();
+
+  boolean isSharedLibrary();
+  boolean isExecutable();
+}

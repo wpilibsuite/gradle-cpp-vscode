@@ -5,8 +5,8 @@ plugins {
     id "com.gradle.plugin-publish" version "1.2.1"
 }
 
-group 'edu.wpi.first'
-version '2.1.0'
+group = 'org.wpilib'
+version = '2027.0.0'
 
 if (project.hasProperty('publishVersion')) {
     version = project.publishVersion
@@ -14,7 +14,7 @@ if (project.hasProperty('publishVersion')) {
 
 repositories {
     maven {
-        url "https://plugins.gradle.org/m2/"
+        url = "https://plugins.gradle.org/m2/"
     }
     mavenLocal()
 }
@@ -27,11 +27,12 @@ java {
 dependencies {
     api 'com.google.code.gson:gson:2.8.6'
 
-    testImplementation('org.spockframework:spock-core:2.0-M4-groovy-3.0') {
+    testImplementation('org.spockframework:spock-core:2.4-M6-groovy-4.0') {
         exclude group: 'org.codehaus.groovy'
     }
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation gradleTestKit()
 }
 
@@ -45,9 +46,9 @@ gradlePlugin {
 
     plugins {
         GradleVsCode {
-            id = 'edu.wpi.first.GradleVsCode'
+            id = 'org.wpilib.GradleVsCode'
             displayName = 'GradleVsCode'
-            implementationClass = 'edu.wpi.first.vscode.GradleVsCode'
+            implementationClass = 'org.wpilib.vscode.GradleVsCode'
             description = 'This plugin provides VS Code support for old style gradle projects.'
             tags = ['groovy', 'vscode', 'cpp', 'maven', 'frc', 'wpilib']
         }
@@ -55,5 +56,5 @@ gradlePlugin {
 }
 
 wrapper {
-    gradleVersion = '8.4'
+    gradleVersion = '9.2.0'
 }
