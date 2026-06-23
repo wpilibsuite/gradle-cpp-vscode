@@ -25,6 +25,7 @@ public class VsCodeConfigurationTask extends DefaultTask {
   @Inject
   public VsCodeConfigurationTask(ObjectFactory factory) {
     configFile = factory.fileProperty();
+    ext = getProject().getExtensions().getByType(VsCodeConfigurationExtension.class);
   }
 
   @OutputFile
@@ -34,13 +35,14 @@ public class VsCodeConfigurationTask extends DefaultTask {
 
   @Input
   public Set<ToolChains> getToolChains() {
-    return ToolChainGenerator.generateToolChains(getProject());
+    return ToolChainGenerator.generateToolChains(ext);
   }
+
+  private final VsCodeConfigurationExtension ext;
 
   @TaskAction
   public void generate() {
     Set<ToolChains> toolChains = getToolChains();
-    VsCodeConfigurationExtension ext = getProject().getExtensions().getByType(VsCodeConfigurationExtension.class);
 
     GsonBuilder builder = new GsonBuilder().disableHtmlEscaping();
 

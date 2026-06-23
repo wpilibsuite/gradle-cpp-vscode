@@ -6,6 +6,8 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
@@ -21,6 +23,13 @@ import com.google.gson.GsonBuilder;
 
 @UntrackedTask(because = "Always want to rerun")
 public abstract class BinaryCompileCommandsTask extends DefaultTask {
+
+    private final File projectDir;
+
+    @Inject
+    public BinaryCompileCommandsTask() {
+        projectDir = getProject().getProjectDir();
+    }
 
     @Internal
     public abstract Property<AbstractNativeSourceCompileTask> getCompileTask();
@@ -43,7 +52,7 @@ public abstract class BinaryCompileCommandsTask extends DefaultTask {
 
         for (File f : task.getSource()) {
             CompileCommand c = new CompileCommand();
-            c.directory = getProject().getProjectDir().getAbsolutePath();
+            c.directory = projectDir.getAbsolutePath();
             c.file = f.getAbsolutePath();
             c.output = spec.getNamingScheme().map(f).getAbsolutePath();
             c.arguments = new ArrayList<>(args.size() + 1);
