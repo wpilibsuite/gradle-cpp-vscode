@@ -160,4 +160,32 @@ model {
     assert configFile.exists()
     println configFile.text
   }
+
+  def "generateVsCodeConfig does not use Task.project at execution time"() {
+    given:
+    buildFile1 << """
+plugins {
+  id 'cpp'
+  id 'org.wpilib.GradleVsCode'
+}
+
+model {
+  components {
+    myLib(NativeExecutableSpec) {
+
+    }
+  }
+}
+"""
+    settingsFile << ""
+    when:
+    def result = GradleRunner.create()
+        .withProjectDir(testProjectDir)
+        .withArguments('generateVsCodeConfig', '--warning-mode=all')
+        .withPluginClasspath()
+        .build()
+    then:
+    result.task(':generateVsCodeConfig').outcome == SUCCESS
+    !result.output.contains('Invocation of Task.project at execution time')
+  }
 }

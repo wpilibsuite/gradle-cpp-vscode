@@ -21,6 +21,11 @@ import org.wpilib.vscode.tooling.models.ToolChains;
 
 public class VsCodeConfigurationTask extends DefaultTask {
   private RegularFileProperty configFile;
+  private VsCodeConfigurationExtension configuration;
+
+  public void setConfiguration(VsCodeConfigurationExtension configuration) {
+    this.configuration = configuration;
+  }
 
   @Inject
   public VsCodeConfigurationTask(ObjectFactory factory) {
@@ -34,17 +39,16 @@ public class VsCodeConfigurationTask extends DefaultTask {
 
   @Input
   public Set<ToolChains> getToolChains() {
-    return ToolChainGenerator.generateToolChains(getProject());
+    return ToolChainGenerator.generateToolChains(configuration);
   }
 
   @TaskAction
   public void generate() {
     Set<ToolChains> toolChains = getToolChains();
-    VsCodeConfigurationExtension ext = getProject().getExtensions().getByType(VsCodeConfigurationExtension.class);
 
     GsonBuilder builder = new GsonBuilder().disableHtmlEscaping();
 
-    if (ext.getPrettyPrinting()) {
+    if (configuration.getPrettyPrinting()) {
       builder.setPrettyPrinting();
     }
 
