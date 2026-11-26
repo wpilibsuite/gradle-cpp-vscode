@@ -31,6 +31,9 @@ public abstract class BinaryCompileCommandsTask extends DefaultTask {
     @OutputDirectory
     public abstract DirectoryProperty getOutputDirectory();
 
+    @Internal
+    public abstract DirectoryProperty getProjectDirectory();
+
     @TaskAction
     public void execute() throws IOException {
         AbstractNativeSourceCompileTask task = getCompileTask().get();
@@ -43,7 +46,7 @@ public abstract class BinaryCompileCommandsTask extends DefaultTask {
 
         for (File f : task.getSource()) {
             CompileCommand c = new CompileCommand();
-            c.directory = getProject().getProjectDir().getAbsolutePath();
+            c.directory = getProjectDirectory().get().getAsFile().getAbsolutePath();
             c.file = f.getAbsolutePath();
             c.output = spec.getNamingScheme().map(f).getAbsolutePath();
             c.arguments = new ArrayList<>(args.size() + 1);

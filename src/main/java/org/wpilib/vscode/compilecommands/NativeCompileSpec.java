@@ -158,7 +158,12 @@ public class NativeCompileSpec {
     public static NativeCompileSpec fromCompile(AbstractNativeSourceCompileTask task, BuildType buildType) {
         NativeCompileSpec spec = new NativeCompileSpec();
         spec.setTargetPlatform(task.getTargetPlatform().get());
-        spec.include(task.getIncludes());
+
+        ProjectInternal pi = (ProjectInternal) task.getProject();
+        // Dependency headers resolved from the Gradle cache should be treated as system headers.
+        GradleCacheIncludeClassifier classifier = new GradleCacheIncludeClassifier(
+                pi.getGradle().getGradleUserHomeDir());
+        classifier.classify(task.getIncludes(), spec.getIncludeRoots(), spec.getSystemIncludeRoots());
         spec.systemInclude(task.getSystemIncludes());
         spec.setMacros(task.getMacros());
         spec.args(task.getCompilerArgs().get());
@@ -167,7 +172,6 @@ public class NativeCompileSpec {
         spec.setOptimized(task.isOptimized());
         spec.setBuildType(buildType);
 
-        ProjectInternal pi = (ProjectInternal) task.getProject();
         CompilerOutputFileNamingSchemeFactory outputNamingFactory = pi.getServices()
                 .get(CompilerOutputFileNamingSchemeFactory.class);
 

@@ -188,4 +188,34 @@ model {
     result.task(':generateVsCodeConfig').outcome == SUCCESS
     !result.output.contains('Invocation of Task.project at execution time')
   }
+
+  def "generateCompileCommands does not use Task.project at execution time"() {
+    given:
+    buildFile1 << """
+plugins {
+  id 'cpp'
+  id 'org.wpilib.GradleVsCode'
+}
+
+model {
+  components {
+    myLib(NativeExecutableSpec) {
+
+    }
+  }
+}
+"""
+    settingsFile << ""
+    new File(testProjectDir, 'src/myLib/cpp').mkdirs()
+    new File(testProjectDir, 'src/myLib/cpp/main.cpp') << 'int main() { return 0; }\n'
+    when:
+    def result = GradleRunner.create()
+        .withProjectDir(testProjectDir)
+        .withArguments('generateCompileCommands', '--warning-mode=all')
+        .withPluginClasspath()
+        .build()
+    then:
+    result.task(':generateCompileCommands').outcome == SUCCESS
+    !result.output.contains('Invocation of Task.project at execution time')
+  }
 }
