@@ -93,6 +93,7 @@ public class GradleVsCodeRules extends RuleSource {
           ccTask.getCompileTask().set(compileTask);
           ccTask.getBuildType().set(bin.getBuildType());
           ccTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(CompileCommand.BINARY_COMPILE_COMMANDS_FOLDER + "/" + ccName));
+          ccTask.getProjectDirectory().set(project.getLayout().getProjectDirectory());
         });
 
         targetedTask.configure(tt -> {

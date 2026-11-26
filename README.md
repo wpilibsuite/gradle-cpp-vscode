@@ -19,7 +19,7 @@ To use a custom build of gradle-cpp-vscode in a robot project, the build must be
 1. Update the version in `build.gradle` so that native-utils won't overwrite an existing version.
 ```
 group 'org.wpilib'
-version '2027.0.0'
+version '2027.0.1'
 ```
 2. Execute `.\gradlew publishToMavenLocal`
 3. Update gradle-cpp-vscode version in native-utils ``build.gradle``: ``api 'org.wpilib:gradle-cpp-vscode:2027.0.0'``
