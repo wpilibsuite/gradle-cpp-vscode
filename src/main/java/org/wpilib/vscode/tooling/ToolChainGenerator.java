@@ -50,7 +50,10 @@ public class ToolChainGenerator {
   }
 
   public static Set<ToolChains> generateToolChains(Project project) {
-    VsCodeConfigurationExtension ext = project.getExtensions().getByType(VsCodeConfigurationExtension.class);
+    return generateToolChains(project.getExtensions().getByType(VsCodeConfigurationExtension.class));
+  }
+
+  public static Set<ToolChains> generateToolChains(VsCodeConfigurationExtension ext) {
     if (ext._toolChainsStore != null) {
       return ext._toolChainsStore;
     }
